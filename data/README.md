@@ -22,6 +22,8 @@ Charging data and related auxiliary data and statistics for six cities: Los Ange
 
 - The row indices represent a time series at an hourly granularity, and the column indices correspond to the station ID.
 
+- Each record is delimited by standardized timestamps, and the values of charging duration represent the charging duration between consecutive time intervals.
+
 - With unit in hour(h).
 
 ## e_price.csv
