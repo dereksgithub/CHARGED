@@ -101,7 +101,7 @@ Charging data and related auxiliary data and statistics for six cities: Los Ange
     </tr>
     <tr>
       <td style="text-align:center;">avg_power</td>
-      <td style="text-align:left;">The average charging power in the city</td>
+      <td style="text-align:left;">The average charging power in the city calculated on a per-charging-record basis</td>
       <td style="text-align:center;">Kilowatts (kW)</td>
     </tr>
   </tbody>
@@ -154,7 +154,7 @@ Charging data and related auxiliary data and statistics for six cities: Los Ange
     </tr>
     <tr>
       <td style="text-align:center;">avg_power</td>
-      <td style="text-align:left;">Average power output during charging sessions</td>
+      <td style="text-align:left;">Average charging power at the charging pile calculated on a per-charging-record basis</td>
       <td style="text-align:center;">Kilowatts (kW)</td>
     </tr>
   </tbody>
@@ -267,7 +267,7 @@ Charging data and related auxiliary data and statistics for six cities: Los Ange
     </tr>
     <tr>
       <td style="text-align:center;">avg_power</td>
-      <td style="text-align:left;">Average charging power at the charging station</td>
+      <td style="text-align:left;">Average charging power at the charging station calculated on a per-charging-record basis</td>
       <td style="text-align:center;">Kilowatts (kW)</td>
     </tr>
     <tr>
