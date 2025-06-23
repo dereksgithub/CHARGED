@@ -22,6 +22,8 @@ Charging data and related auxiliary data and statistics for six cities: Los Ange
 
 - The row indices represent a time series at an hourly granularity, and the column indices correspond to the station ID.
 
+- Each record is delimited by standardized timestamps, and the values of charging duration represent the charging duration between consecutive time intervals.
+
 - With unit in hour(h).
 
 ## e_price.csv
@@ -101,7 +103,7 @@ Charging data and related auxiliary data and statistics for six cities: Los Ange
     </tr>
     <tr>
       <td style="text-align:center;">avg_power</td>
-      <td style="text-align:left;">The average charging power in the city</td>
+      <td style="text-align:left;">The average charging power in the city calculated on a per-charging-record basis</td>
       <td style="text-align:center;">Kilowatts (kW)</td>
     </tr>
   </tbody>
@@ -154,7 +156,7 @@ Charging data and related auxiliary data and statistics for six cities: Los Ange
     </tr>
     <tr>
       <td style="text-align:center;">avg_power</td>
-      <td style="text-align:left;">Average power output during charging sessions</td>
+      <td style="text-align:left;">Average charging power at the charging pile calculated on a per-charging-record basis</td>
       <td style="text-align:center;">Kilowatts (kW)</td>
     </tr>
   </tbody>
@@ -267,7 +269,7 @@ Charging data and related auxiliary data and statistics for six cities: Los Ange
     </tr>
     <tr>
       <td style="text-align:center;">avg_power</td>
-      <td style="text-align:left;">Average charging power at the charging station</td>
+      <td style="text-align:left;">Average charging power at the charging station calculated on a per-charging-record basis</td>
       <td style="text-align:center;">Kilowatts (kW)</td>
     </tr>
     <tr>

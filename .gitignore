@@ -9,3 +9,7 @@ data/AMS/duration.csv
 /example/result
 api/trash.py
 /api/federated/__pycache__
+/api/config/__pycache__
+/test
+data/CHARGED_v1.zip
+data/CHARGED_v2.zip
