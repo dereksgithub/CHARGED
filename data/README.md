@@ -1,353 +1,231 @@
-# Data Description
-
-Charging data and related auxiliary data and statistics for six cities: Los Angeles, São Paulo, Shenzhen, Amsterdam, Johannesburg, and Melbourne.
-
-- There are two versions for each city, in which xxx_remove_zero removes charging stations with zero charge volume, charge duration and price.
-
-- There are 10 CSV files in each folder, some of them are compressed in csv-larger-than-100MB.rar due to size limitation.
-
-## distance.csv
-
-- A distance matrix constructed based on the geographical coordinates (latitude and longitude) of charging stations.
-
-- The matrix is computed using a geodesic algorithm based on the ellipsoidal Earth model.
-
-- Both row and column indices defined by the unique identifiers of the aggregated stations, resulting in a symmetric matrix.
-
-- With unit in kilometer.
-
-## duration.csv
-
-- Charging duration.
-
-- The row indices represent a time series at an hourly granularity, and the column indices correspond to the station ID.
-
-- Each record is delimited by standardized timestamps, and the values of charging duration represent the charging duration between consecutive time intervals.
-
-- With unit in hour(h).
-
-## e_price.csv
-
-- Charging fee.
-
-- The row indices represent a time series at an hourly granularity, and the column indices correspond to the station ID.
-
-- The units vary by city:
-
-    - Los Angeles: USD/kWh
-
-    - São Paulo: Brazilian Real/kWh
-
-    - Shenzhen: CNY/kWh
-
-    - Amsterdam: Dutch Guilder/kWh
-
-    - Johannesburg: Rand/kWh
-
-    - Melbourne: AUD/kWh
-
-## info.csv
-
-- Information about the data.
-
-- The following table details the specific fields, their meanings, and corresponding units (if applicable) for the CSV file:
-
-<table style="margin: 0 auto; table-layout: fixed;">
-   <thead>
-    <tr>
-      <th style="text-align:center;">Field</th>
-      <th style="text-align:center;">Meaning</th>
-      <th style="text-align:center;">Unit</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="text-align:center;">city</td>
-      <td style="text-align:left;">The name of the city</td>
-      <td style="text-align:center;">N/A</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">country</td>
-      <td style="text-align:left;">The country to which the city belongs</td>
-      <td style="text-align:center;">N/A</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">abbreviation</td>
-      <td style="text-align:left;">The abbreviation of the city</td>
-      <td style="text-align:center;">N/A</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">total_piles</td>
-      <td style="text-align:left;">The total number of charging piles in the city</td>
-      <td style="text-align:center;">Count</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">total_stations</td>
-      <td style="text-align:left;">The total number of charging stations in the city</td>
-      <td style="text-align:center;">Count</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">DBSCAN_eps</td>
-      <td style="text-align:left;">The epsilon parameter used for DBSCAN clustering of charging stations within the city, representing the neighborhood radius</td>
-      <td style="text-align:center;">Meter (m)</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">total_duration</td>
-      <td style="text-align:left;">The total charging duration recorded in the city</td>
-      <td style="text-align:center;">Hour (h)</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">total_volume</td>
-      <td style="text-align:left;">The total charging volume recorded in the city</td>
-      <td style="text-align:center;">Kilowatt-hours (kWh)</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">avg_power</td>
-      <td style="text-align:left;">The average charging power in the city calculated on a per-charging-record basis</td>
-      <td style="text-align:center;">Kilowatts (kW)</td>
-    </tr>
-  </tbody>
-</table>
-
-## piles.csv
-
-- Information about the piles.
-
-- The following table details the specific fields, their meanings, and corresponding units (if applicable) for the CSV file:
-
-<table style="margin: 0 auto; table-layout: fixed;">
-   <thead>
-    <tr>
-      <th style="text-align:center;">Field</th>
-      <th style="text-align:center;">Meaning</th>
-      <th style="text-align:center;">Unit</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="text-align:center;">pile_id</td>
-      <td style="text-align:left;">Unique identifier for the charging pile</td>
-      <td style="text-align:center;">N/A</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">longitude</td>
-      <td style="text-align:left;">Geographical longitude of the charging pile's location</td>
-      <td style="text-align:center;">N/A</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">latitude</td>
-      <td style="text-align:left;">Geographical latitude of the charging pile's location</td>
-      <td style="text-align:center;">N/A</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">station_id</td>
-      <td style="text-align:left;">Identifier for the charging station to which the pile belongs</td>
-      <td style="text-align:center;">N/A</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">total_duration</td>
-      <td style="text-align:left;">Total charging duration recorded at the charging pile</td>
-      <td style="text-align:center;">Hours</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">total_volume</td>
-      <td style="text-align:left;">Total amount of energy delivered at the charging pile</td>
-      <td style="text-align:center;">Kilowatt-hours (kWh)</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">avg_power</td>
-      <td style="text-align:left;">Average charging power at the charging pile calculated on a per-charging-record basis</td>
-      <td style="text-align:center;">Kilowatts (kW)</td>
-    </tr>
-  </tbody>
-</table>
-
-## poi.csv
-
-- Urban Points of Interest (POIs) are obtained from the OpenStreetMap.
-
-- The specific categories of POIs and their corresponding semantic definitions can be referenced in [OSM Wiki](https://wiki.openstreetmap.org/wiki/Map_features) or the associated data documentation.
-
-- The following table details the specific fields, their meanings, and corresponding units (if applicable) for the CSV file:
-
-<table style="margin: 0 auto; table-layout: fixed;">
-   <thead>
-    <tr>
-      <th style="text-align:center;">Field</th>
-      <th style="text-align:center;">Meaning</th>
-      <th style="text-align:center;">Unit</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="text-align:center;">type</td>
-      <td style="text-align:left;"> The geographic feature of the POI</td>
-      <td style="text-align:center;">N/A</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">longitude</td>
-      <td style="text-align:left;">Geographical longitude of the POI's location</td>
-      <td style="text-align:center;">Degrees</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">latitude</td>
-      <td style="text-align:left;">Geographical latitude of the POI's location</td>
-      <td style="text-align:center;">Degrees</td>
-    </tr>
-  </tbody>
-</table>
-
-
-
-## s_price.csv
-
-- Service fee.
-
-- For São Paulo, Johannesburg, and Melbourne, no additional service fees are charged during the charging process; therefore, the service fee is uniformly assigned as 0.
-
-- The row indices represent a time series at an hourly granularity, and the column indices correspond to the station ID.
-
-- The units vary by city:
-
-    - Los Angeles: USD/kWh
-
-    - São Paulo: Brazilian Real/kWh
-
-    - Shenzhen: CNY/kWh
-
-    - Amsterdam: Dutch Guilder/kWh
-
-    - Johannesburg: Rand/kWh
-
-    - Melbourne: AUD/kWh
-
-
-## stations.csv
-
-- Information about the stations.
-
-- The following table details the specific fields, their meanings, and corresponding units (if applicable) for the CSV file:
-
-<table style="margin: 0 auto; table-layout: fixed;">
-   <thead>
-    <tr>
-      <th style="text-align:center;">Field</th>
-      <th style="text-align:center;">Meaning</th>
-      <th style="text-align:center;">Unit</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="text-align:center;">station_id</td>
-      <td style="text-align:left;">Unique identifier for the charging station</td>
-      <td style="text-align:center;">N/A</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">longitude</td>
-      <td style="text-align:left;">Geographical longitude of the charging station's location</td>
-      <td style="text-align:center;">Degrees</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">latitude</td>
-      <td style="text-align:left;">Geographical latitude of the charging station's location</td>
-      <td style="text-align:center;">Degrees</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">pile_num</td>
-      <td style="text-align:left;">Number of charging piles at the station</td>
-      <td style="text-align:center;">Count</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">total_duration</td>
-      <td style="text-align:left;">Total charging duration recorded at the charging station</td>
-      <td style="text-align:center;">Hours</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">total_volume</td>
-      <td style="text-align:left;">Total charging volume recorded at the charging station</td>
-      <td style="text-align:center;">Kilowatt-hours (kWh)</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">avg_power</td>
-      <td style="text-align:left;">Average charging power at the charging station calculated on a per-charging-record basis</td>
-      <td style="text-align:center;">Kilowatts (kW)</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">perimeter</td>
-      <td style="text-align:left;">Perimeter of the shape formed after DBSCAN clustering</td>
-      <td style="text-align:center;">Meters (m)</td>
-    </tr>
-    <tr>
-      <td style="text-align:center;">area</td>
-      <td style="text-align:left;">Area of the shape formed after DBSCAN clustering</td>
-      <td style="text-align:center;">Square meters (m<sup>2</sup>)</td>
-    </tr>
-  </tbody>
-</table>
-
-
-## volume.csv
-
-- Charging volume.
-
-- The row indices represent a time series at an hourly granularity, and the column indices correspond to the station ID.
-
-- With unit in Kilowatt-hours (kWh).
-
-
-## weather.csv
-
-- Hourly-granularity weather data obtained and organized through the API services provided by Visual Crossing.
-
-- The following field explanations are based on the [documentation provided by Visual Crossing](https://www.visualcrossing.com/resources/documentation/weather-api/timeline-weather-api/), which details the various meteorological parameters and their associated attributes:
-
-    - temp – temperature at the location.
-
-    - feelslike – what the temperature feels like accounting for heat index or wind chill.
-
-    - humidity – relative humidity in %.
-
-    - dew – dew point temperature.
-
-    - precip – the amount of liquid precipitation that fell or is predicted to fall in the period. This includes the liquid-equivalent amount of any frozen precipitation such as snow or ice.
-
-    - snow – the amount of snow that fell or is predicted to fall.
-
-    - snowdepth – the depth of snow on the ground.
-
-    - preciptype – an array indicating the type(s) of precipitation expected or that occurred. Possible values include rain, snow, freezingrain and ice.
-
-    - windgust  – instantaneous wind speed at a location. May be empty if it is not significantly higher than the wind speed.
-
-    - windspeed – the sustained wind speed measured as the average windspeed that occurs during the preceding one to two minutes.
-
-    - winddir – direction from which the wind is blowing.
-
-    - pressure – the sea level atmospheric or barometric pressure in millibars (or hectopascals).
-
-    - visibility – distance at which distant objects are visible.
-
-    - cloudcover – how much of the sky is covered in cloud ranging from 0-100%.
-
-    - solarradiation  – (W/m2) the solar radiation power at the instantaneous moment of the observation (or forecast prediction).
-
-    - solarenergy  – (MJ/m2) indicates the total energy from the sun that builds up over an hour or day.
-
-    - uvindex – a value between 0 and 10 indicating the level of ultra violet (UV) exposure for that hour or day. 10 represents high level of exposure, and 0 represents no exposure. The UV index is calculated based on amount of short wave solar radiation which in turn is a level the cloudiness, type of cloud, time of day, time of year and location altitude.
-
-    - conditions – textual representation of the weather conditions. Conditions represented by numbers correspond to the following: 
-
-        - 'Clear': 0,
-        - 'Overcast': 1,
-        - 'Partially cloudy': 2,
-        - 'Rain': 3,
-        - 'Rain, Fog': 4,
-        - 'Rain, Overcast': 5,
-        - 'Rain, Partially cloudy': 6,
-        - 'Snow': 7,
-        - 'Snow, Fog': 8,
-        - 'Snow, Partially cloudy': 9,
-        - 'Snow, Rain': 10,
-        - 'Snow, Rain, Overcast': 11,
-        - 'Snow, Rain, Partially cloudy': 12
+# CHARGED Dataset Description
+
+## Overview
+
+The CHARGED (City-scale and Harmonized Dataset for Global Electric Vehicle Charging Demand Analysis) dataset provides comprehensive electric vehicle charging data and related auxiliary information for six major cities worldwide: **Los Angeles**, **São Paulo**, **Shenzhen**, **Amsterdam**, **Johannesburg**, and **Melbourne**.
+
+## Dataset Versions
+
+Each city has two data versions:
+- **Standard version**: Complete dataset with all charging stations
+- **`xxx_remove_zero` version**: Filtered dataset with charging stations that have zero charge volume, charge duration, and price removed for cleaner analysis
+
+## Data Structure
+
+Each city folder contains 10 CSV files. Due to size limitations, some files larger than 100MB are compressed in `csv-larger-than-100MB.rar`.
+
+## File Descriptions
+
+### Core Charging Data
+
+#### volume.csv
+- **Description**: Hourly charging volume (energy consumption) data
+- **Format**: Time series with hourly granularity
+- **Index**: Timestamps (hourly intervals)
+- **Columns**: Station IDs
+- **Unit**: Kilowatt-hours (kWh)
+- **Use Case**: Primary target variable for demand prediction
+
+#### duration.csv
+- **Description**: Charging duration data representing time spent charging
+- **Format**: Time series with hourly granularity
+- **Index**: Timestamps (hourly intervals)
+- **Columns**: Station IDs
+- **Unit**: Hours (h)
+- **Note**: Values represent charging duration between consecutive time intervals
+
+### Pricing Information
+
+#### e_price.csv
+- **Description**: Electricity charging fees (energy cost)
+- **Format**: Time series with hourly granularity
+- **Index**: Timestamps (hourly intervals)
+- **Columns**: Station IDs
+- **Units by City**:
+  - Los Angeles: USD/kWh
+  - São Paulo: Brazilian Real (BRL)/kWh
+  - Shenzhen: Chinese Yuan (CNY)/kWh
+  - Amsterdam: Euro (EUR)/kWh
+  - Johannesburg: South African Rand (ZAR)/kWh
+  - Melbourne: Australian Dollar (AUD)/kWh
+
+#### s_price.csv
+- **Description**: Service fees (additional charges beyond electricity cost)
+- **Format**: Time series with hourly granularity
+- **Index**: Timestamps (hourly intervals)
+- **Columns**: Station IDs
+- **Note**: São Paulo, Johannesburg, and Melbourne have no service fees (uniformly set to 0)
+- **Units**: Same as e_price.csv for each respective city
+
+### Infrastructure Information
+
+#### stations.csv
+- **Description**: Comprehensive information about charging stations
+- **Key Fields**:
+
+| Field | Description | Unit |
+|-------|-------------|------|
+| station_id | Unique identifier for the charging station | N/A |
+| longitude | Geographical longitude of station location | Degrees |
+| latitude | Geographical latitude of station location | Degrees |
+| pile_num | Number of charging piles at the station | Count |
+| total_duration | Total charging duration recorded at station | Hours |
+| total_volume | Total charging volume recorded at station | kWh |
+| avg_power | Average charging power per charging record | kW |
+| perimeter | Perimeter of DBSCAN cluster shape | Meters (m) |
+| area | Area of DBSCAN cluster shape | Square meters (m²) |
+
+#### piles.csv
+- **Description**: Detailed information about individual charging piles
+- **Key Fields**:
+
+| Field | Description | Unit |
+|-------|-------------|------|
+| pile_id | Unique identifier for the charging pile | N/A |
+| longitude | Geographical longitude of pile location | Degrees |
+| latitude | Geographical latitude of pile location | Degrees |
+| station_id | Identifier of the station containing this pile | N/A |
+| total_duration | Total charging duration at this pile | Hours |
+| total_volume | Total energy delivered at this pile | kWh |
+| avg_power | Average charging power per charging record | kW |
+
+### Auxiliary Data
+
+#### distance.csv
+- **Description**: Inter-station distance matrix
+- **Format**: Symmetric matrix
+- **Index/Columns**: Station IDs
+- **Calculation**: Geodesic distance based on ellipsoidal Earth model
+- **Unit**: Kilometers (km)
+- **Use Case**: Spatial analysis and clustering
+
+#### weather.csv
+- **Description**: Hourly weather data from Visual Crossing API
+- **Source**: [Visual Crossing Weather API](https://www.visualcrossing.com/resources/documentation/weather-api/timeline-weather-api/)
+- **Key Fields**:
+
+| Field | Description | Unit |
+|-------|-------------|------|
+| temp | Temperature | Celsius (°C) |
+| feelslike | Apparent temperature (heat index/wind chill) | Celsius (°C) |
+| humidity | Relative humidity | Percentage (%) |
+| dew | Dew point temperature | Celsius (°C) |
+| precip | Liquid precipitation amount | mm |
+| snow | Snowfall amount | mm |
+| snowdepth | Snow depth on ground | mm |
+| preciptype | Precipitation type | Array (rain/snow/freezingrain/ice) |
+| windgust | Instantaneous wind speed | km/h |
+| windspeed | Sustained wind speed | km/h |
+| winddir | Wind direction | Degrees |
+| pressure | Sea level atmospheric pressure | hPa |
+| visibility | Visibility distance | km |
+| cloudcover | Cloud coverage | Percentage (0-100%) |
+| solarradiation | Solar radiation power | W/m² |
+| solarenergy | Solar energy accumulation | MJ/m² |
+| uvindex | UV exposure index | Scale (0-10) |
+| conditions | Weather conditions | Categorical (see mapping below) |
+
+**Weather Conditions Mapping**:
+- 0: Clear
+- 1: Overcast
+- 2: Partially cloudy
+- 3: Rain
+- 4: Rain, Fog
+- 5: Rain, Overcast
+- 6: Rain, Partially cloudy
+- 7: Snow
+- 8: Snow, Fog
+- 9: Snow, Partially cloudy
+- 10: Snow, Rain
+- 11: Snow, Rain, Overcast
+- 12: Snow, Rain, Partially cloudy
+
+#### poi.csv
+- **Description**: Points of Interest (POIs) from OpenStreetMap
+- **Source**: [OpenStreetMap](https://www.openstreetmap.org/)
+- **Categories**: Amenities, buildings, offices, shops, leisure facilities, etc.
+- **Reference**: [OSM Wiki - Map Features](https://wiki.openstreetmap.org/wiki/Map_features)
+- **Fields**:
+
+| Field | Description | Unit |
+|-------|-------------|------|
+| type | Geographic feature category | N/A |
+| longitude | POI longitude | Degrees |
+| latitude | POI latitude | Degrees |
+
+### Metadata
+
+#### info.csv
+- **Description**: Dataset metadata and summary statistics
+- **Key Fields**:
+
+| Field | Description | Unit |
+|-------|-------------|------|
+| city | City name | N/A |
+| country | Country name | N/A |
+| abbreviation | City code (3-letter) | N/A |
+| total_piles | Total number of charging piles | Count |
+| total_stations | Total number of charging stations | Count |
+| DBSCAN_eps | DBSCAN clustering radius parameter | Meters (m) |
+| total_duration | Total charging duration in dataset | Hours |
+| total_volume | Total charging volume in dataset | kWh |
+| avg_power | Average charging power across all records | kW |
+
+## Data Quality Notes
+
+### Preprocessing Applied
+- **Anomaly Detection**: Outliers identified and corrected using IQR method
+- **Zero Sequence Handling**: Continuous zero sequences interpolated
+- **Station Clustering**: Geographic clustering using DBSCAN algorithm
+- **Data Validation**: Cross-checked for consistency and completeness
+
+### Known Limitations
+- Some cities may have missing data during certain time periods
+- Weather data availability depends on API coverage
+- POI data completeness varies by city and OSM coverage
+- Currency exchange rates not provided for cross-city comparisons
+
+## Usage Guidelines
+
+### Recommended Workflow
+1. Start with `xxx_remove_zero` versions for cleaner analysis
+2. Use `info.csv` to understand dataset characteristics
+3. Combine charging data with weather and POI data for comprehensive analysis
+4. Apply appropriate temporal and spatial aggregation as needed
+
+### Data Loading Example
+```python
+import pandas as pd
+
+# Load charging volume data
+volume_data = pd.read_csv('data/SZH_remove_zero/volume.csv', index_col=0)
+volume_data.index = pd.to_datetime(volume_data.index)
+
+# Load station information
+stations = pd.read_csv('data/SZH_remove_zero/stations.csv')
+
+# Load weather data
+weather = pd.read_csv('data/SZH_remove_zero/weather.csv', index_col=0)
+weather.index = pd.to_datetime(weather.index)
+```
+
+## Citation
+
+If you use this dataset in your research, please cite:
+
+```bibtex
+@article{charged2024,
+  title={CHARGED: A City-scale and Harmonized Dataset for Global Electric Vehicle Charging Demand Analysis},
+  author={Your Name},
+  journal={arXiv preprint},
+  year={2024}
+}
+```
+
+## Support
+
+For questions about the dataset, please refer to:
+- Main project documentation: [README.md](../README.md)
+- GitHub Issues: [Project Issues](https://github.com/IntelligentSystemsLab/CHARGED/issues)
+- Contact: guozh29@mail2.sysu.edu.cn
 
