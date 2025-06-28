@@ -45,7 +45,7 @@ Each city folder contains 10 CSV files. Due to size limitations, some files larg
   - Los Angeles: USD/kWh
   - São Paulo: Brazilian Real (BRL)/kWh
   - Shenzhen: Chinese Yuan (CNY)/kWh
-  - Amsterdam: Euro (EUR)/kWh
+  - Amsterdam: Dutch Guilder/kWh
   - Johannesburg: South African Rand (ZAR)/kWh
   - Melbourne: Australian Dollar (AUD)/kWh
 
@@ -175,52 +175,14 @@ Each city folder contains 10 CSV files. Due to size limitations, some files larg
 
 ### Preprocessing Applied
 - **Anomaly Detection**: Outliers identified and corrected using IQR method
-- **Zero Sequence Handling**: Continuous zero sequences interpolated
+- **Zero Sequence Handling**: Zero sequences interpolated
 - **Station Clustering**: Geographic clustering using DBSCAN algorithm
-- **Data Validation**: Cross-checked for consistency and completeness
 
 ### Known Limitations
 - Some cities may have missing data during certain time periods
 - Weather data availability depends on API coverage
 - POI data completeness varies by city and OSM coverage
 - Currency exchange rates not provided for cross-city comparisons
-
-## Usage Guidelines
-
-### Recommended Workflow
-1. Start with `xxx_remove_zero` versions for cleaner analysis
-2. Use `info.csv` to understand dataset characteristics
-3. Combine charging data with weather and POI data for comprehensive analysis
-4. Apply appropriate temporal and spatial aggregation as needed
-
-### Data Loading Example
-```python
-import pandas as pd
-
-# Load charging volume data
-volume_data = pd.read_csv('data/SZH_remove_zero/volume.csv', index_col=0)
-volume_data.index = pd.to_datetime(volume_data.index)
-
-# Load station information
-stations = pd.read_csv('data/SZH_remove_zero/stations.csv')
-
-# Load weather data
-weather = pd.read_csv('data/SZH_remove_zero/weather.csv', index_col=0)
-weather.index = pd.to_datetime(weather.index)
-```
-
-## Citation
-
-If you use this dataset in your research, please cite:
-
-```bibtex
-@article{charged2024,
-  title={CHARGED: A City-scale and Harmonized Dataset for Global Electric Vehicle Charging Demand Analysis},
-  author={Your Name},
-  journal={arXiv preprint},
-  year={2024}
-}
-```
 
 ## Support
 
