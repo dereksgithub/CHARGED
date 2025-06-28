@@ -5,9 +5,33 @@
 # @Last Modified By   : GZH
 # @Last Modified Time : 2025/4/11 2:14
 
+"""
+Module implementing a variety of time-series forecasting algorithms and neural models.
+
+This module contains implementations of both traditional statistical models and modern
+deep learning architectures for time series forecasting, specifically designed for
+electric vehicle charging demand prediction.
+
+Classes:
+    Lo: Last-observation baseline predictor - uses the most recent value as prediction.
+    Ar: Autoregressive model predictor - traditional AR model with configurable lags.
+    Arima: ARIMA model predictor with automated order selection using pmdarima.
+    Fcnn: Fully-connected neural predictor - simple feedforward neural network.
+    Lstm: LSTM-based sequence predictor - recurrent neural network for sequence modeling.
+    SegRNN: Segmented RNN forecasting model - advanced RNN with segmentation strategy.
+    FreTS: Frequency-domain temporal-spatial model - FFT-based neural architecture.
+    ModernTCN: Temporal convolutional network with Reversible IN and re-parameterization.
+    MultiPatchFormer: Multi-patch transformer encoder-based forecaster.
+    ConvTimeNet: Convolutional time-series encoder with modern architectural features.
+
+Each class provides a `predict` or `forward` method for inference.
+"""
+
+# Standard library imports
 import math
 import warnings
 
+# Third-party imports
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -17,6 +41,7 @@ from pmdarima import auto_arima
 from statsmodels.tsa.ar_model import AutoReg
 from einops import rearrange
 
+# Local imports
 from api.model.layers import (
     ModernTCN_RevIN,
     ModernTCN_Stage,
@@ -28,120 +53,211 @@ from api.model.layers import (
     ConvTimeNet_get_activation_fn,
 )
 
-"""
-Module implementing a variety of time-series forecasting algorithms and neural models.
-
-Classes:
-    Lo: Last-observation baseline predictor.
-    Ar: Autoregressive model predictor.
-    Arima: ARIMA model predictor with automated order selection.
-    Fcnn: Fully-connected neural predictor.
-    Lstm: LSTM-based sequence predictor.
-    SegRNN: Segmented RNN forecasting model.
-    FreTS: Frequency-domain temporal-spatial model.
-    ModernTCN: Temporal convolutional network with Reversible IN and re-parameterization.
-    MultiPatchFormer: Multi-patch transformer encoder-based forecaster.
-    ConvTimeNet: Convolutional time-series encoder.
-
-Each class provides a `predict` or `forward` method for inference.
-"""
-
 
 class Lo:
+    """
+    Last-observation baseline predictor.
+    
+    This is a simple baseline model that uses the most recent observed value
+    as the prediction for future time steps. It serves as a fundamental
+    benchmark for evaluating more sophisticated forecasting models.
+    
+    Args:
+        pre_len (int): Prediction horizon length.
+    """
+    
     def __init__(self, pre_len):
+        """Initialize the last-observation predictor."""
         self.pred_len = pre_len
 
     def predict(self, train_valid_feat, test_feat):
         """
         Use the latest observed value as the prediction for the next time step.
+        
+        This method implements a simple strategy where predictions are based on
+        the most recent available observations. For the first few predictions,
+        it uses values from the training/validation set, then switches to using
+        the test set values as they become available.
+        
+        Args:
+            train_valid_feat (np.ndarray): Training and validation features [T, N].
+            test_feat (np.ndarray): Test features [T, N].
+            
+        Returns:
+            np.ndarray: Predictions of shape [T, N].
         """
-        time_len, node = test_feat.shape
-        preds = np.zeros((time_len, node))
+        time_len, node = test_feat.shape  # Get dimensions
+        preds = np.zeros((time_len, node))  # Initialize prediction array
 
+        # Generate predictions for each node
         for j in range(node):
             for i in range(time_len):
                 if i < self.pred_len:
+                    # Use training/validation data for initial predictions
                     preds[i, j] = train_valid_feat[-self.pred_len + i, j]
                 else:
+                    # Use test data for subsequent predictions
                     preds[i, j] = test_feat[i - self.pred_len, j]
 
         return preds
 
 
 class Ar:
+    """
+    Autoregressive model predictor.
+    
+    This class implements a traditional autoregressive model for time series
+    forecasting. It uses past values of the time series to predict future values.
+    
+    Args:
+        pred_len (int): Prediction horizon length.
+        lags (int): Number of lagged observations to use (default: 1).
+    """
+    
     def __init__(self, pred_len, lags=1):
+        """Initialize the autoregressive model."""
         self.pred_len = pred_len
         self.lags = lags
 
     def predict(self, train_valid_feat, test_feat):
         """
         Perform predictions using the AR model.
+        
+        This method fits an autoregressive model to the training data and
+        generates predictions for the test period. It uses parallel processing
+        to handle multiple nodes efficiently.
+        
+        Args:
+            train_valid_feat (np.ndarray): Training and validation features [T, N].
+            test_feat (np.ndarray): Test features [T, N].
+            
+        Returns:
+            np.ndarray: Predictions of shape [T, N].
         """
-        time_len, node = test_feat.shape
-        train_valid_feat = train_valid_feat[:-self.pred_len, :]
+        time_len, node = test_feat.shape  # Get dimensions
+        train_valid_feat = train_valid_feat[:-self.pred_len, :]  # Remove prediction period from training
 
         def fit_predict(j):
-            fit_series = train_valid_feat[:, j]
-            model = AutoReg(fit_series, lags=self.lags)
-            model_fitted = model.fit()
+            """Fit AR model and predict for a single node."""
+            fit_series = train_valid_feat[:, j]  # Extract series for current node
+            model = AutoReg(fit_series, lags=self.lags)  # Create AR model
+            model_fitted = model.fit()  # Fit the model
             pred_node = []
+            
+            # Generate predictions for each time step
             for i in range(time_len):
                 start = len(fit_series) + self.pred_len
                 end = start
-                pred = model_fitted.predict(start=start, end=end)
-                pred_node.append(pred[-1])
+                pred = model_fitted.predict(start=start, end=end)  # Make prediction
+                pred_node.append(pred[-1])  # Take the last predicted value
             return pred_node
 
+        # Use parallel processing for efficiency
         preds = Parallel(n_jobs=10)(delayed(fit_predict)(j) for j in range(node))
-        preds = np.array(preds).T
+        preds = np.array(preds).T  # Transpose to get [T, N] format
         return preds
 
 
 class Arima:
+    """
+    ARIMA model predictor with automated order selection.
+    
+    This class implements an ARIMA (Autoregressive Integrated Moving Average)
+    model with automatic parameter selection using the pmdarima library.
+    
+    Args:
+        pred_len (int): Prediction horizon length.
+    """
+    
     def __init__(self, pred_len):
-        """
-        Initialize the ARIMA model parameters.
-        """
+        """Initialize the ARIMA model parameters."""
         self.pred_len = pred_len
 
     def predict(self, train_valid_feat, test_feat):
-        time_len, node = test_feat.shape
-        train_valid_feat = train_valid_feat[:-self.pred_len, :]
+        """
+        Perform predictions using the ARIMA model with automatic parameter selection.
+        
+        This method automatically selects the optimal ARIMA parameters (p, d, q)
+        and generates predictions for the test period. It uses parallel processing
+        for efficiency and includes warning suppression for convergence issues.
+        
+        Args:
+            train_valid_feat (np.ndarray): Training and validation features [T, N].
+            test_feat (np.ndarray): Test features [T, N].
+            
+        Returns:
+            np.ndarray: Predictions of shape [T, N].
+        """
+        time_len, node = test_feat.shape  # Get dimensions
+        train_valid_feat = train_valid_feat[:-self.pred_len, :]  # Remove prediction period
+        
+        # Suppress convergence warnings
         warnings.filterwarnings("ignore", category=UserWarning,
                                 message=".*Maximum Likelihood optimization failed to converge.*")
 
         def fit_predict(j):
-            fit_series = train_valid_feat[:, j]
+            """Fit ARIMA model and predict for a single node."""
+            fit_series = train_valid_feat[:, j]  # Extract series for current node
+            
+            # Automatically select ARIMA parameters
             model = auto_arima(
                 fit_series,
-                start_p=0, max_p=2,
-                start_q=0, max_q=2,
+                start_p=0, max_p=2,  # AR order range
+                start_q=0, max_q=2,  # MA order range
             )
             pred_node = []
+            
+            # Generate predictions for each time step
             for i in range(time_len):
-                pred = model.predict(n_periods=self.pred_len)
-                pred_node.append(pred[-1])  # 只取最后一个值
+                pred = model.predict(n_periods=self.pred_len)  # Predict multiple steps
+                pred_node.append(pred[-1])  # Take only the last value
             return pred_node
 
+        # Use parallel processing for efficiency
         preds = Parallel(n_jobs=10)(delayed(fit_predict)(j) for j in range(node))
-        preds = np.array(preds).T
+        preds = np.array(preds).T  # Transpose to get [T, N] format
         return preds
 
 
 class Fcnn(nn.Module):
+    """
+    Fully-connected neural predictor.
+    
+    A simple feedforward neural network for time series forecasting.
+    It flattens the input sequence and applies linear transformations.
+    
+    Args:
+        n_fea (int): Number of input features.
+        node (int): Number of nodes/stations.
+        seq (int): Input sequence length (default: 12).
+    """
+    
     def __init__(self, n_fea, node, seq=12):  # input_dim = seq_length
+        """Initialize the fully-connected neural network."""
         super(Fcnn, self).__init__()
         self.num_feat = n_fea
         self.seq = seq
         self.nodes = node
-        self.linear = nn.Linear(seq * n_fea, 1)
+        self.linear = nn.Linear(seq * n_fea, 1)  # Single linear layer
 
     def forward(self, feat, extra_feat=None):
+        """
+        Forward pass through the fully-connected network.
+        
+        Args:
+            feat (torch.Tensor): Input features of shape [batch, node, seq].
+            extra_feat (torch.Tensor, optional): Auxiliary features.
+            
+        Returns:
+            torch.Tensor: Predictions of shape [batch, node].
+        """
         x = feat
         if extra_feat is not None:
+            # Concatenate main features with auxiliary features
             x = torch.cat([feat.unsqueeze(-1), extra_feat], dim=-1)
-            assert x.shape[
-                       -1] == self.num_feat, f"Number of features ({x.shape[-1]}) does not match n_fea ({self.num_feat})."
+            assert x.shape[-1] == self.num_feat, f"Number of features ({x.shape[-1]}) does not match n_fea ({self.num_feat})."
+        
+        # Flatten and apply linear transformation
         x = x.view(-1, self.nodes, self.seq * self.num_feat)
         x = self.linear(x)
         x = torch.squeeze(x)
@@ -149,132 +265,242 @@ class Fcnn(nn.Module):
 
 
 class Lstm(nn.Module):
+    """
+    LSTM-based sequence predictor.
+    
+    A recurrent neural network using LSTM cells for time series forecasting.
+    It processes the input sequence through LSTM layers and applies
+    a final linear transformation for prediction.
+    
+    Args:
+        seq (int): Input sequence length.
+        n_fea (int): Number of input features.
+        node (int): Number of nodes/stations.
+    """
+    
     def __init__(self, seq, n_fea, node):
+        """Initialize the LSTM network."""
         super(Lstm, self).__init__()
         self.num_feat = n_fea
         self.nodes = node
         self.seq_len = seq
-        self.encoder = nn.Linear(n_fea, 1)  # input.shape: [batch, channel, width, height]
-        self.lstm_hidden_dim = 16
+        self.encoder = nn.Linear(n_fea, 1)  # Input encoder
+        self.lstm_hidden_dim = 16  # LSTM hidden dimension
         self.lstm = nn.LSTM(input_size=n_fea, hidden_size=self.lstm_hidden_dim, num_layers=2,
-                            batch_first=True)
-        self.linear = nn.Linear(seq * self.lstm_hidden_dim, 1)
+                            batch_first=True)  # LSTM layers
+        self.linear = nn.Linear(seq * self.lstm_hidden_dim, 1)  # Output layer
 
     def forward(self, feat, extra_feat=None):  # feat.shape = [batch, node, seq]
-        x = feat.unsqueeze(-1)
+        """
+        Forward pass through the LSTM network.
+        
+        Args:
+            feat (torch.Tensor): Input features of shape [batch, node, seq].
+            extra_feat (torch.Tensor, optional): Auxiliary features.
+            
+        Returns:
+            torch.Tensor: Predictions of shape [batch, node].
+        """
+        x = feat.unsqueeze(-1)  # Add channel dimension
         if extra_feat is not None:
+            # Concatenate main features with auxiliary features
             x = torch.cat([feat.unsqueeze(-1), extra_feat], dim=-1)
-        assert x.shape[
-                   -1] == self.num_feat, f"Number of features ({x.shape[-1]}) does not match n_fea ({self.num_feat})."
+        assert x.shape[-1] == self.num_feat, f"Number of features ({x.shape[-1]}) does not match n_fea ({self.num_feat})."
 
-        bs = x.shape[0]
+        bs = x.shape[0]  # Batch size
+        # Reshape for LSTM processing: [batch*node, seq, features]
         x = x.view(bs * self.nodes, self.seq_len, self.num_feat)
 
+        # Process through LSTM
         lstm_out, _ = self.lstm(x)  # lstm_out shape: [batch_size * node, seq_len, lstm_hidden_dim]
         lstm_out = lstm_out.reshape(bs, self.nodes, self.seq_len * self.lstm_hidden_dim)
-        x = self.linear(lstm_out)
+        x = self.linear(lstm_out)  # Apply final linear layer
         x = torch.squeeze(x)
         return x  # [batch, node]
 
 
 class SegRNN(nn.Module):
+    """
+    Segmented RNN forecasting model.
+    
+    An advanced RNN architecture that segments the input sequence and uses
+    GRU cells with positional and channel embeddings for improved forecasting.
+    
+    Args:
+        seq_len (int): Input sequence length.
+        pred_len (int): Prediction horizon length.
+        n_fea (int): Number of input features.
+        seg_len (int): Segment length for segmentation (default: 1).
+        d_model (int): Model dimension (default: 256).
+        dropout (float): Dropout rate (default: 0.1).
+    """
 
     def __init__(self, seq_len, pred_len, n_fea, seg_len=1, d_model=256, dropout=0.1):
+        """Initialize the Segmented RNN model."""
         super(SegRNN, self).__init__()
 
-        # get parameters
+        # Store parameters
         self.seq_len = seq_len
         self.enc_in = n_fea
         self.d_model = d_model
         self.dropout = dropout
         self.pred_len = pred_len
 
+        # Segmentation parameters
         self.seg_len = seg_len
-        self.seg_num_x = self.seq_len // self.seg_len
-        self.seg_num_y = self.pred_len // self.seg_len
+        self.seg_num_x = self.seq_len // self.seg_len  # Number of input segments
+        self.seg_num_y = self.pred_len // self.seg_len  # Number of output segments
 
-        # building model
+        # Build model components
         self.valueEmbedding = nn.Sequential(
-            nn.Linear(self.seg_len, self.d_model),
+            nn.Linear(self.seg_len, self.d_model),  # Segment embedding
             nn.ReLU()
         )
+        # GRU layer for sequence processing
         self.rnn = nn.GRU(input_size=self.d_model, hidden_size=self.d_model, num_layers=1, bias=True,
                           batch_first=True, bidirectional=False)
-        self.pos_emb = nn.Parameter(torch.randn(self.seg_num_y, self.d_model // 2))
-        self.channel_emb = nn.Parameter(torch.randn(self.enc_in, self.d_model // 2))
+        # Positional and channel embeddings
+        self.pos_emb = nn.Parameter(torch.randn(self.seg_num_y, self.d_model // 2))  # Positional embedding
+        self.channel_emb = nn.Parameter(torch.randn(self.enc_in, self.d_model // 2))  # Channel embedding
 
+        # Prediction layers
         self.predict = nn.Sequential(
             nn.Dropout(self.dropout),
-            nn.Linear(self.d_model, self.seg_len)
+            nn.Linear(self.d_model, self.seg_len)  # Segment prediction
         )
-        self.final_linear = nn.Linear(self.enc_in, 1)
+        self.final_linear = nn.Linear(self.enc_in, 1)  # Final output layer
 
     def encoder(self, x):
-        # b:batch_size c:channel_size s:seq_len
-        # d:d_model w:seg_len n:seg_num_x m:seg_num_y
+        """
+        Encode input sequence using segmentation and GRU processing.
+        
+        This method implements the core encoding logic of the SegRNN model:
+        1. Normalizes the input sequence
+        2. Segments the sequence into chunks
+        3. Applies embeddings and GRU processing
+        4. Uses positional and channel embeddings
+        5. Generates predictions
+        
+        Args:
+            x (torch.Tensor): Input tensor of shape [batch, seq_len, channels].
+            
+        Returns:
+            torch.Tensor: Encoded output of shape [batch, pred_len, channels].
+        """
+        # Variable naming convention:
+        # b: batch_size, c: channel_size, s: seq_len
+        # d: d_model, w: seg_len, n: seg_num_x, m: seg_num_y
         batch_size = x.size(0)
 
-        # normalization and permute     b,s,c -> b,c,s
-        seq_last = x[:, -1:, :].detach()
-        x = (x - seq_last)  # b,c,s
+        # Normalization and permute: b,s,c -> b,c,s
+        seq_last = x[:, -1:, :].detach()  # Get last sequence value for normalization
+        x = (x - seq_last)  # Normalize by subtracting last value: b,c,s
 
-        # segment and embedding    b,c,s -> bc,n,w -> bc,n,d
+        # Segment and embedding: b,c,s -> bc,n,w -> bc,n,d
         x = self.valueEmbedding(x.reshape(-1, self.seg_num_x, self.seg_len))
 
-        # encoding
-        _, hn = self.rnn(x)  # bc,n,d  1,bc,d
+        # Encoding with GRU
+        _, hn = self.rnn(x)  # bc,n,d -> 1,bc,d (hidden state)
 
+        # Create positional and channel embeddings
         # m,d//2 -> 1,m,d//2 -> c,m,d//2
         # c,d//2 -> c,1,d//2 -> c,m,d//2
-        # c,m,d -> cm,1,d -> bcm, 1, d
+        # c,m,d -> cm,1,d -> bcm,1,d
         pos_emb = torch.cat([
-            self.pos_emb.unsqueeze(0).repeat(self.enc_in, 1, 1),
-            self.channel_emb.unsqueeze(1).repeat(1, self.seg_num_y, 1)
+            self.pos_emb.unsqueeze(0).repeat(self.enc_in, 1, 1),  # Repeat positional embedding
+            self.channel_emb.unsqueeze(1).repeat(1, self.seg_num_y, 1)  # Repeat channel embedding
         ], dim=-1).view(-1, 1, self.d_model).repeat(batch_size, 1, 1)
 
-        _, hy = self.rnn(pos_emb, hn.repeat(1, 1, self.seg_num_y).view(1, -1, self.d_model))  # bcm,1,d  1,bcm,d
+        # Process embeddings through GRU
+        _, hy = self.rnn(pos_emb, hn.repeat(1, 1, self.seg_num_y).view(1, -1, self.d_model))  # bcm,1,d -> 1,bcm,d
 
-        # 1,bcm,d -> 1,bcm,w -> b,c,s
+        # Generate predictions: 1,bcm,d -> 1,bcm,w -> b,c,s
         y = self.predict(hy).view(-1, self.enc_in, self.pred_len)
 
-        # permute and denorm
-        y = y.permute(0, 2, 1) + seq_last
-        y = self.final_linear(y)
+        # Permute and denormalize
+        y = y.permute(0, 2, 1) + seq_last  # Add back the normalization offset
+        y = self.final_linear(y)  # Final linear transformation
         return y
 
     def forecast(self, x_enc):
-        # Encoder
+        """
+        Generate forecasts using the encoder.
+        
+        Args:
+            x_enc (torch.Tensor): Input tensor for forecasting.
+            
+        Returns:
+            torch.Tensor: Forecasted values.
+        """
         return self.encoder(x_enc)
 
     def forward(self, feat, extra_feat=None):
-        x = feat.unsqueeze(-1)
+        """
+        Forward pass through the SegRNN model.
+        
+        This method handles the complete forward pass, including chunking for
+        memory efficiency and error handling for CUDA memory issues.
+        
+        Args:
+            feat (torch.Tensor): Input features of shape [batch, node, seq].
+            extra_feat (torch.Tensor, optional): Auxiliary features.
+            
+        Returns:
+            torch.Tensor: Predictions of shape [batch, node].
+        """
+        x = feat.unsqueeze(-1)  # Add channel dimension
         if extra_feat is not None:
+            # Concatenate main features with auxiliary features
             x = torch.cat([feat.unsqueeze(-1), extra_feat], dim=-1)
-        B_ori, node, seq_len, channel = x.shape
-        x_enc = x.view(B_ori * node, seq_len, channel)
-        outputs = []
-        current_chunk_size = self.chunk_size
+        B_ori, node, seq_len, channel = x.shape  # Get tensor dimensions
+        x_enc = x.view(B_ori * node, seq_len, channel)  # Reshape for processing
+        
+        outputs = []  # Store chunk outputs
+        current_chunk_size = self.chunk_size  # Initialize chunk size
         start_idx = 0
+        
+        # Process data in chunks to handle memory constraints
         while start_idx < x_enc.shape[0]:
             try:
-                x_chunk = x_enc[start_idx: start_idx + current_chunk_size]
-                dec_out_chunk = self.forecast(x_chunk)
-                features_chunk = dec_out_chunk[:, -1, :]
-                outputs.append(features_chunk)
-                start_idx += current_chunk_size
+                x_chunk = x_enc[start_idx: start_idx + current_chunk_size]  # Extract chunk
+                dec_out_chunk = self.forecast(x_chunk)  # Process chunk
+                features_chunk = dec_out_chunk[:, -1, :]  # Extract last timestep
+                outputs.append(features_chunk)  # Store result
+                start_idx += current_chunk_size  # Move to next chunk
             except RuntimeError as e:
                 if "CUDA" in str(e):
+                    # Reduce chunk size on CUDA memory error
                     current_chunk_size = max(1, current_chunk_size // 2)
-                    torch.cuda.empty_cache()
+                    torch.cuda.empty_cache()  # Clear CUDA cache
                 else:
-                    raise e
-        out = torch.cat(outputs, dim=0)
-        out = out.view(B_ori, node)
+                    raise e  # Re-raise non-CUDA errors
+        
+        # Combine all chunk outputs
+        out = torch.cat(outputs, dim=0)  # Concatenate outputs
+        out = out.view(B_ori, node)  # Reshape to original batch format
         return out
 
 
 class FreTS(nn.Module):
+    """
+    Frequency-domain temporal-spatial model.
+    
+    A neural architecture that operates in the frequency domain using FFT
+    transformations for both temporal and spatial dimensions. It combines
+    frequency-domain processing with MLPs for time series forecasting.
+    
+    Args:
+        seq_len (int): Input sequence length.
+        pred_len (int): Prediction horizon length.
+        n_fea (int): Number of input features.
+        embed_size (int): Embedding dimension (default: 128).
+        hidden_size (int): Hidden layer dimension (default: 256).
+        sparsity_threshold (float): Threshold for soft shrinkage (default: 0.01).
+        scale (float): Scale factor for weight initialization (default: 0.02).
+    """
+    
     def __init__(self, seq_len, pred_len, n_fea, embed_size=128, hidden_size=256, sparsity_threshold=0.01, scale=0.02):
+        """Initialize the FreTS model."""
         super(FreTS, self).__init__()
         self.embed_size = embed_size
         self.hidden_size = hidden_size
@@ -283,109 +509,180 @@ class FreTS(nn.Module):
         self.seq_length = seq_len
         self.sparsity_threshold = sparsity_threshold
         self.scale = scale
-        self.embeddings = nn.Parameter(torch.randn(1, self.embed_size))
-        self.r1 = nn.Parameter(self.scale * torch.randn(self.embed_size, self.embed_size))
-        self.i1 = nn.Parameter(self.scale * torch.randn(self.embed_size, self.embed_size))
-        self.rb1 = nn.Parameter(self.scale * torch.randn(self.embed_size))
-        self.ib1 = nn.Parameter(self.scale * torch.randn(self.embed_size))
-        self.r2 = nn.Parameter(self.scale * torch.randn(self.embed_size, self.embed_size))
-        self.i2 = nn.Parameter(self.scale * torch.randn(self.embed_size, self.embed_size))
-        self.rb2 = nn.Parameter(self.scale * torch.randn(self.embed_size))
-        self.ib2 = nn.Parameter(self.scale * torch.randn(self.embed_size))
+        
+        # Learnable embeddings and parameters
+        self.embeddings = nn.Parameter(torch.randn(1, self.embed_size))  # Token embeddings
+        
+        # Real and imaginary parts of weights for frequency-domain processing
+        self.r1 = nn.Parameter(self.scale * torch.randn(self.embed_size, self.embed_size))  # Real weights for channel
+        self.i1 = nn.Parameter(self.scale * torch.randn(self.embed_size, self.embed_size))  # Imaginary weights for channel
+        self.rb1 = nn.Parameter(self.scale * torch.randn(self.embed_size))  # Real bias for channel
+        self.ib1 = nn.Parameter(self.scale * torch.randn(self.embed_size))  # Imaginary bias for channel
+        
+        self.r2 = nn.Parameter(self.scale * torch.randn(self.embed_size, self.embed_size))  # Real weights for temporal
+        self.i2 = nn.Parameter(self.scale * torch.randn(self.embed_size, self.embed_size))  # Imaginary weights for temporal
+        self.rb2 = nn.Parameter(self.scale * torch.randn(self.embed_size))  # Real bias for temporal
+        self.ib2 = nn.Parameter(self.scale * torch.randn(self.embed_size))  # Imaginary bias for temporal
 
+        # Output layers
         self.fc = nn.Sequential(
-            nn.Linear(self.seq_length * self.embed_size, self.hidden_size),
+            nn.Linear(self.seq_length * self.embed_size, self.hidden_size),  # Flatten and project
             nn.LeakyReLU(),
-            nn.Linear(self.hidden_size, self.pre_length)
+            nn.Linear(self.hidden_size, self.pre_length)  # Final prediction layer
         )
-        self.final_linear = nn.Linear(self.feature_size, 1)
+        self.final_linear = nn.Linear(self.feature_size, 1)  # Channel-wise output
 
-    # dimension extension
     def tokenEmb(self, x):
-        # x: [Batch, Input length, Channel]
-        x = x.permute(0, 2, 1)
-        x = x.unsqueeze(3)
-        # N*T*1 x 1*D = N*T*D
-        y = self.embeddings
-        return x * y
+        """
+        Apply token embeddings to input.
+        
+        Args:
+            x (torch.Tensor): Input tensor of shape [Batch, Input length, Channel].
+            
+        Returns:
+            torch.Tensor: Embedded tensor of shape [Batch, Input length, Channel, Embed_size].
+        """
+        x = x.permute(0, 2, 1)  # [B, C, T]
+        x = x.unsqueeze(3)  # [B, C, T, 1]
+        # N*T*1 x 1*D = N*T*D (broadcast multiplication)
+        y = self.embeddings  # [1, D]
+        return x * y  # [B, C, T, D]
 
-    # frequency temporal learner
     def MLP_temporal(self, x, B, N, L):
+        """
+        Apply frequency-domain MLP along temporal dimension.
+        
+        Args:
+            x (torch.Tensor): Input tensor of shape [B, N, T, D].
+            B (int): Batch size.
+            N (int): Number of nodes.
+            L (int): Sequence length.
+            
+        Returns:
+            torch.Tensor: Processed tensor of shape [B, N, T, D].
+        """
         # [B, N, T, D]
-        x = torch.fft.rfft(x, dim=2, norm='ortho')  # FFT on L dimension
-        y = self.FreMLP(B, N, L, x, self.r2, self.i2, self.rb2, self.ib2)
-        x = torch.fft.irfft(y, n=self.seq_length, dim=2, norm="ortho")
+        x = torch.fft.rfft(x, dim=2, norm='ortho')  # FFT on temporal dimension (L)
+        y = self.FreMLP(B, N, L, x, self.r2, self.i2, self.rb2, self.ib2)  # Apply frequency MLP
+        x = torch.fft.irfft(y, n=self.seq_length, dim=2, norm="ortho")  # Inverse FFT
         return x
 
-    # frequency channel learner
     def MLP_channel(self, x, B, N, L):
+        """
+        Apply frequency-domain MLP along channel dimension.
+        
+        Args:
+            x (torch.Tensor): Input tensor of shape [B, N, T, D].
+            B (int): Batch size.
+            N (int): Number of nodes.
+            L (int): Sequence length.
+            
+        Returns:
+            torch.Tensor: Processed tensor of shape [B, N, T, D].
+        """
         # [B, N, T, D]
-        x = x.permute(0, 2, 1, 3)
+        x = x.permute(0, 2, 1, 3)  # [B, T, N, D]
         # [B, T, N, D]
-        x = torch.fft.rfft(x, dim=2, norm='ortho')  # FFT on N dimension
-        y = self.FreMLP(B, L, N, x, self.r1, self.i1, self.rb1, self.ib1)
-        x = torch.fft.irfft(y, n=self.feature_size, dim=2, norm="ortho")
-        x = x.permute(0, 2, 1, 3)
-        # [B, N, T, D]
+        x = torch.fft.rfft(x, dim=2, norm='ortho')  # FFT on channel dimension (N)
+        y = self.FreMLP(B, L, N, x, self.r1, self.i1, self.rb1, self.ib1)  # Apply frequency MLP
+        x = torch.fft.irfft(y, n=self.feature_size, dim=2, norm="ortho")  # Inverse FFT
+        x = x.permute(0, 2, 1, 3)  # [B, N, T, D]
         return x
 
-    # frequency-domain MLPs
-    # dimension: FFT along the dimension, r: the real part of weights, i: the imaginary part of weights
-    # rb: the real part of bias, ib: the imaginary part of bias
     def FreMLP(self, B, nd, dimension, x, r, i, rb, ib):
-        o1_real = torch.zeros([B, nd, dimension // 2 + 1, self.embed_size],
-                              device=x.device)
-        o1_imag = torch.zeros([B, nd, dimension // 2 + 1, self.embed_size],
-                              device=x.device)
+        """
+        Frequency-domain MLP with complex number operations.
+        
+        This method implements a frequency-domain MLP that operates on complex
+        numbers, applying separate transformations to real and imaginary parts.
+        
+        Args:
+            B (int): Batch size.
+            nd (int): Number of dimensions.
+            dimension (int): Feature dimension.
+            x (torch.Tensor): Complex input tensor.
+            r (torch.Tensor): Real part of weights.
+            i (torch.Tensor): Imaginary part of weights.
+            rb (torch.Tensor): Real part of bias.
+            ib (torch.Tensor): Imaginary part of bias.
+            
+        Returns:
+            torch.Tensor: Complex output tensor.
+        """
+        # Initialize output tensors for real and imaginary parts
+        o1_real = torch.zeros([B, nd, dimension // 2 + 1, self.embed_size], device=x.device)
+        o1_imag = torch.zeros([B, nd, dimension // 2 + 1, self.embed_size], device=x.device)
 
+        # Complex multiplication: (a+bi)(c+di) = (ac-bd) + (ad+bc)i
         o1_real = F.relu(
-            torch.einsum('bijd,dd->bijd', x.real, r) - \
-            torch.einsum('bijd,dd->bijd', x.imag, i) + \
-            rb
+            torch.einsum('bijd,dd->bijd', x.real, r) - \  # Real part: ac
+            torch.einsum('bijd,dd->bijd', x.imag, i) + \  # Real part: -bd
+            rb  # Real bias
         )
 
         o1_imag = F.relu(
-            torch.einsum('bijd,dd->bijd', x.imag, r) + \
-            torch.einsum('bijd,dd->bijd', x.real, i) + \
-            ib
+            torch.einsum('bijd,dd->bijd', x.imag, r) + \  # Imaginary part: bc
+            torch.einsum('bijd,dd->bijd', x.real, i) + \  # Imaginary part: ad
+            ib  # Imaginary bias
         )
 
-        y = torch.stack([o1_real, o1_imag], dim=-1)
-        y = F.softshrink(y, lambd=self.sparsity_threshold)
-        y = torch.view_as_complex(y)
+        # Combine real and imaginary parts into complex tensor
+        y = torch.stack([o1_real, o1_imag], dim=-1)  # Stack along last dimension
+        y = F.softshrink(y, lambd=self.sparsity_threshold)  # Apply soft shrinkage
+        y = torch.view_as_complex(y)  # Convert to complex tensor
         return y
 
     def forward(self, feat, extra_feat=None):
-        x = feat.unsqueeze(-1)
+        """
+        Forward pass through the FreTS model.
+        
+        This method implements the complete forward pass with chunking for
+        memory efficiency and error handling for CUDA memory issues.
+        
+        Args:
+            feat (torch.Tensor): Input features of shape [batch, node, seq].
+            extra_feat (torch.Tensor, optional): Auxiliary features.
+            
+        Returns:
+            torch.Tensor: Predictions of shape [batch, node].
+        """
+        x = feat.unsqueeze(-1)  # Add channel dimension
         if extra_feat is not None:
+            # Concatenate main features with auxiliary features
             x = torch.cat([feat.unsqueeze(-1), extra_feat], dim=-1)
-        B_ori, node, seq_len, channel = x.shape
-        x_enc = x.view(B_ori * node, seq_len, channel)
-        outputs = []
-        current_chunk_size = self.chunk_size
+        B_ori, node, seq_len, channel = x.shape  # Get tensor dimensions
+        x_enc = x.view(B_ori * node, seq_len, channel)  # Reshape for processing
+        
+        outputs = []  # Store chunk outputs
+        current_chunk_size = self.chunk_size  # Initialize chunk size
         start_idx = 0
+        
+        # Process data in chunks to handle memory constraints
         while start_idx < x_enc.shape[0]:
             try:
-                x_chunk = x_enc[start_idx: start_idx + current_chunk_size]
-                B, T, N = x_chunk.shape
-                x_chunk = self.tokenEmb(x_chunk)
-                bias = x_chunk
-                x_chunk = self.MLP_channel(x_chunk, B, N, T)
-                x_chunk = self.MLP_temporal(x_chunk, B, N, T)
-                x_chunk = x_chunk + bias
-                x_chunk = self.fc(x_chunk.reshape(B, N, -1)).permute(0, 2, 1)
-                x_chunk = self.final_linear(x_chunk)
-                x_chunk = x_chunk.squeeze(-1)
-                outputs.append(x_chunk)
-                start_idx += current_chunk_size
+                x_chunk = x_enc[start_idx: start_idx + current_chunk_size]  # Extract chunk
+                B, T, N = x_chunk.shape  # Get chunk dimensions
+                x_chunk = self.tokenEmb(x_chunk)  # Apply token embeddings
+                bias = x_chunk  # Store original for residual connection
+                x_chunk = self.MLP_channel(x_chunk, B, N, T)  # Process channel dimension
+                x_chunk = self.MLP_temporal(x_chunk, B, N, T)  # Process temporal dimension
+                x_chunk = x_chunk + bias  # Add residual connection
+                x_chunk = self.fc(x_chunk.reshape(B, N, -1)).permute(0, 2, 1)  # Flatten and project
+                x_chunk = self.final_linear(x_chunk)  # Final linear transformation
+                x_chunk = x_chunk.squeeze(-1)  # Remove last dimension
+                outputs.append(x_chunk)  # Store result
+                start_idx += current_chunk_size  # Move to next chunk
             except RuntimeError as e:
                 if "CUDA" in str(e):
+                    # Reduce chunk size on CUDA memory error
                     current_chunk_size = max(1, current_chunk_size // 2)
-                    torch.cuda.empty_cache()
+                    torch.cuda.empty_cache()  # Clear CUDA cache
                 else:
-                    raise e
-        out = torch.cat(outputs, dim=0)
-        out = out.view(B_ori, node)
+                    raise e  # Re-raise non-CUDA errors
+        
+        # Combine all chunk outputs
+        out = torch.cat(outputs, dim=0)  # Concatenate outputs
+        out = out.view(B_ori, node)  # Reshape to original batch format
         return out
 
 

@@ -43,6 +43,10 @@ Utility Functions:
 
 
 class AttentionLayer(nn.Module):
+    """
+    Multi-head attention layer with input/output projections.
+    Wraps an attention mechanism and applies linear projections to queries, keys, and values.
+    """
     def __init__(self, attention, d_model, n_heads, d_keys=None,
                  d_values=None):
         super(AttentionLayer, self).__init__()
@@ -58,6 +62,15 @@ class AttentionLayer(nn.Module):
         self.n_heads = n_heads
 
     def forward(self, queries, keys, values, attn_mask, tau=None, delta=None):
+        """
+        Forward pass for multi-head attention.
+        Args:
+            queries, keys, values: Input tensors [B, L/S, d_model]
+            attn_mask: Optional attention mask
+            tau, delta: Optional parameters for advanced attention
+        Returns:
+            Output tensor and attention weights
+        """
         B, L, _ = queries.shape
         _, S, _ = keys.shape
         H = self.n_heads
@@ -80,6 +93,9 @@ class AttentionLayer(nn.Module):
 
 
 class FullAttention(nn.Module):
+    """
+    Standard scaled dot-product attention with optional causal mask.
+    """
     def __init__(self, mask_flag=True, factor=5, scale=None, attention_dropout=0.1, output_attention=False):
         super(FullAttention, self).__init__()
         self.scale = scale
@@ -88,6 +104,14 @@ class FullAttention(nn.Module):
         self.dropout = nn.Dropout(attention_dropout)
 
     def forward(self, queries, keys, values, attn_mask, tau=None, delta=None):
+        """
+        Forward pass for full attention.
+        Args:
+            queries, keys, values: [B, L/S, H, E]
+            attn_mask: Optional mask
+        Returns:
+            Output tensor and (optionally) attention weights
+        """
         B, L, H, E = queries.shape
         _, S, _, D = values.shape
         scale = self.scale or 1. / sqrt(E)
@@ -110,6 +134,9 @@ class FullAttention(nn.Module):
 
 
 class TriangularCausalMask():
+    """
+    Generates a causal mask for autoregressive attention (prevents attending to future positions).
+    """
     def __init__(self, B, L, device="cpu"):
         mask_shape = [B, 1, L, L]
         with torch.no_grad():
@@ -122,16 +149,15 @@ class TriangularCausalMask():
 
 class ModernTCN_moving_avg(nn.Module):
     """
-    Moving average block to highlight the trend of time series
+    Moving average block to highlight the trend of time series.
     """
-
     def __init__(self, kernel_size, stride):
         super(ModernTCN_moving_avg, self).__init__()
         self.kernel_size = kernel_size
         self.avg = nn.AvgPool1d(kernel_size=kernel_size, stride=stride, padding=0)
 
     def forward(self, x):
-        # padding on the both ends of time series
+        # Pad both ends of the time series to maintain length
         front = x[:, 0:1, :].repeat(1, (self.kernel_size - 1) // 2, 1)
         end = x[:, -1:, :].repeat(1, (self.kernel_size - 1) // 2, 1)
         x = torch.cat([front, x, end], dim=1)
@@ -142,9 +168,8 @@ class ModernTCN_moving_avg(nn.Module):
 
 class ModernTCN_series_decomp(nn.Module):
     """
-    Series decomposition block
+    Series decomposition block: decomposes input into trend and residual.
     """
-
     def __init__(self, kernel_size):
         super(ModernTCN_series_decomp, self).__init__()
         self.moving_avg = ModernTCN_moving_avg(kernel_size, stride=1)
@@ -155,8 +180,11 @@ class ModernTCN_series_decomp(nn.Module):
         return res, moving_mean
 
 
-# forecast task head
+# Forecasting head for TCN models
 class ModernTCN_Flatten_Head(nn.Module):
+    """
+    Flattening and linear head for TCN output, supports individual or shared heads per variable.
+    """
     def __init__(self, individual, n_vars, nf, target_window, head_dropout=0):
         super(ModernTCN_Flatten_Head, self).__init__()
 
@@ -193,11 +221,16 @@ class ModernTCN_Flatten_Head(nn.Module):
 
 
 class ModernTCN_RevIN(nn.Module):
+    """
+    Reversible Instance Normalization for time series.
+    """
     def __init__(self, num_features: int, eps=1e-5, affine=True, subtract_last=False):
         """
-        :param num_features: the number of features or channels
-        :param eps: a value added for numerical stability
-        :param affine: if True, RevIN has learnable affine parameters
+        Args:
+            num_features: Number of features or channels
+            eps: Value added for numerical stability
+            affine: If True, RevIN has learnable affine parameters
+            subtract_last: If True, subtract last value instead of mean
         """
         super(ModernTCN_RevIN, self).__init__()
         self.num_features = num_features
@@ -205,7 +238,9 @@ class ModernTCN_RevIN(nn.Module):
         self.affine = affine
         self.subtract_last = subtract_last
         if self.affine:
-            self._init_params()
+            self.weight = nn.Parameter(torch.ones(1, 1, num_features))
+            self.bias = nn.Parameter(torch.zeros(1, 1, num_features))
+        self._init_params()
 
     def forward(self, x, mode: str):
         if mode == 'norm':
