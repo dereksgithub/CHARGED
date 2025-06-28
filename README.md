@@ -3,6 +3,8 @@
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15638530.svg)](https://doi.org/10.5281/zenodo.15638530)
+
 
 A comprehensive framework for electric vehicle charging demand prediction and analysis across multiple global cities. This project provides harmonized datasets, advanced prediction models, and federated learning capabilities for city-scale EV charging behavior analysis and infrastructure planning.
 
