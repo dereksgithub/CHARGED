@@ -13,3 +13,4 @@ api/trash.py
 /test
 data/CHARGED_v1.zip
 data/CHARGED_v2.zip
+/script/visualization/figs
