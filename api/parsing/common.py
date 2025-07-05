@@ -30,7 +30,7 @@ def parse_args():
             pre_len (int): Prediction horizon length (default: 1).
             fold (int): Current fold index for cross-validation (default: 1).
             total_fold (int): Total number of folds (default: 6).
-            pred_type (str): Granularity of prediction ('station' or 'city').
+            pred_type (str): Granularity of prediction ('site' or 'city').
             batch_size (int): Batch size for training (default: 32).
             epoch (int): Maximum number of training epochs (default: 50).
             is_train (bool): Flag indicating training mode (default: True).
@@ -77,7 +77,7 @@ def parse_args():
         '--total_fold', type=int, default=6, help="Total number of folds for cross-validation."
     )
     parser.add_argument(
-        '--pred_type', type=str, default='station', help="Prediction granularity ('station' or 'city')."
+        '--pred_type', type=str, default='site', help="Prediction granularity ('site' or 'city')."
     )
     parser.add_argument(
         '--batch_size', type=int, default=32, help="Batch size for training."

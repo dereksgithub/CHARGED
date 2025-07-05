@@ -9,14 +9,14 @@
 Module for loading and processing electric vehicle dataset features in distributed settings.
 
 This module provides functionality for handling distributed electric vehicle
-charging data across multiple cities and stations. It supports federated learning
-scenarios where data is partitioned across different clients (cities or stations)
+charging data across multiple cities and sites. It supports federated learning
+scenarios where data is partitioned across different clients (cities or sites)
 and includes cross-validation splits, client partitioning, and DataLoader creation.
 
 Key Features:
     - Multi-city data loading and preprocessing
     - Client-based data partitioning for federated learning
-    - Station-level and city-level prediction modes
+    - Site-level and city-level prediction modes
     - Automatic client selection for training and evaluation
     - Support for auxiliary features (pricing, weather, location)
 """
@@ -35,11 +35,11 @@ from api.utils import get_n_feature
 
 class DistributedEVDataset(object):
     """
-    Distributed dataset handler for EV features across multiple clients (cities/stations).
+    Distributed dataset handler for EV features across multiple clients (cities/sites).
 
     This class provides comprehensive functionality for loading, preprocessing,
     and partitioning electric vehicle charging data across multiple cities and
-    stations. It supports both station-level and city-level prediction modes,
+    sites. It supports both site-level and city-level prediction modes,
     making it suitable for federated learning scenarios.
 
     The class handles data loading from multiple cities, feature normalization,
@@ -64,7 +64,7 @@ class DistributedEVDataset(object):
             pred_type: str,
             eval_percentage: float,
             eval_city: str,
-            max_stations: int = 300,
+            max_sites: int = 300,
             weather_columns: list[str] = ['temp', 'precip', 'visibility'],
             selection_mode: str = 'middle',
     ) -> None:
@@ -80,12 +80,12 @@ class DistributedEVDataset(object):
             feature (str): Feature file to load; 'volume' or 'duration'.
             auxiliary (str): Auxiliary data mode: 'None', 'all', or combination of features.
             data_paths (dict): Mapping city abbreviations to data directories.
-            pred_type (str): Prediction granularity; 'station' or 'city'.
-            eval_percentage (float): % of clients per city for evaluation (station mode).
+            pred_type (str): Prediction granularity; 'siter 'city'.
+            eval_percentage (float): % of clients per city for evaluation (sitede).
             eval_city (str): City code reserved for evaluation (city mode).
-            max_stations (int): Max stations per city (station mode).
+            max_siteint): Max sitsitecity (site msite
             weather_columns (list[str]): Weather attributes to include.
-            selection_mode (str): Station selection strategy: 'top', 'middle', 'random'.
+            selection_mode (str): Site selection strategy: 'top', 'middle', 'random'.
 
         Raises:
             ValueError: If feature or pred_type or selection_mode is invalid.
@@ -107,12 +107,12 @@ class DistributedEVDataset(object):
                 raise ValueError("Unknown feature - must be 'volume' or 'duration'")
 
             # Scale features by city maximum value for normalization
-            max_val = feat_df.max().max()  # Get maximum value across all stations and time
+            max_val = feat_df.max().max()  # Get maximum value across all sitend time
             feat_scaled = feat_df / max_val  # Normalize by maximum value
             self.city_scalers[city_abbr] = max_val  # Store scaling factor for later use
             feat_df = feat_scaled.copy()  # Use scaled features
 
-            station_ids = list(feat_df.columns)  # Get list of station IDs
+            sites = list(feat_df.columns)  # Get list of sitsite
 
             # Load and normalize price data
             e_price_all = pd.read_csv(f'{data_path}e_price.csv', index_col=0, header=0).values  # Electricity prices
@@ -134,41 +134,41 @@ class DistributedEVDataset(object):
             if 'visibility' in weather.columns:
                 weather['visibility'] = weather['visibility'] / 50  # Scale visibility: [0, 50] -> [0, 1]
 
-            # Load station metadata for selection and feature construction
-            stations_info = pd.read_csv(f'{data_path}stations.csv').set_index('station_id')
-            stations_info.index = stations_info.index.astype(str)  # Convert index to string type
+            # Load sitetadata for selection and feature construction
+            sitenfo = pd.read_csv(f'{data_path}sitsite).set_index('site_isite
+            sitenfo.index = sitsite.index.astype(str)  # Convert index to string type
 
-            # Station selection if pred_type == 'station' and exceeding max_stations
-            if pred_type == 'station' and len(stations_info) > max_stations:
+            # Site selection if pred_type == 'sitend exceeding max_sitsite
+            if pred_type == 'sitend len(sitsite) > max_sites:site
                 if selection_mode == 'top':
-                    # Select top stations by total_duration (most active)
-                    selected_stations = stations_info.sort_values(by='total_duration', ascending=False).head(
-                        max_stations)
+                    # Select top sitey total_duration (most active)
+                    selected_site sitsite.sort_values(by='total_duration', ascending=False).head(
+                        max_site
                 elif selection_mode == 'middle':
-                    # Select middle-range stations by total_duration
-                    sorted_stations = stations_info.sort_values(by='total_duration', ascending=True)
-                    start = max((len(sorted_stations) - max_stations) // 2, 0)  # Calculate start index
-                    selected_stations = sorted_stations.iloc[start:start + max_stations]
+                    # Select middle-range sitey total_duration
+                    sorted_site sitsite.sort_values(by='total_duration', ascending=True)
+                    start = max((len(sorted_site- max_sitsite2, 0)  # Calculate start index
+                    selected_site sorted_sitsite[start:start + max_sites]site
                 elif selection_mode == 'random':
-                    # Select random sample of stations
-                    selected_stations = stations_info.sample(n=max_stations, random_state=42)  # Fixed seed
+                    # Select random sample of site
+                    selected_site sitsite.sample(n=max_sites,site_state=42)  # Fixed seed
                 else:
                     raise ValueError(f"Unknown selection_mode: {selection_mode}")
                 
-                # Filter data for selected stations
-                selected_ids = selected_stations.index.tolist()  # Get selected station IDs
+                # Filter data for selected site
+                selected_ids = selected_sitendex.tolist()  # Get selected sitsite
                 feat_df = feat_df[selected_ids]  # Filter main features
                 
-                # Re-load and re-scale price data for selected stations
+                # Re-load and re-scale price data for selected site
                 e_price_df = pd.read_csv(f'{data_path}e_price.csv', index_col=0, header=0)
                 s_price_df = pd.read_csv(f'{data_path}s_price.csv', index_col=0, header=0)
                 e_price_all = price_scaler.fit_transform(e_price_df[selected_ids])  # Re-scale electricity prices
                 s_price_all = price_scaler.fit_transform(s_price_df[selected_ids])  # Re-scale service prices
-                stations_info = selected_stations  # Update stations info
-                station_ids = selected_ids  # Update station IDs
+                sitenfo = selected_sitsitepdate sites site
+                sites = selected_ids  # Update sitsite
 
             # Normalize latitude/longitude and create base extra_feat
-            lat_long = stations_info.loc[feat_df.columns, ['latitude', 'longitude']].values
+            lat_long = sitenfo.loc[feat_df.columns, ['latitude', 'longitude']].values
             lat_norm = (lat_long[:, 0] + 90) / 180  # Normalize latitude: [-90, 90] -> [0, 1]
             lon_norm = (lat_long[:, 1] + 180) / 360  # Normalize longitude: [-180, 180] -> [0, 1]
             lat_long_norm = np.stack([lat_norm, lon_norm], axis=1)  # Stack into 2D array
@@ -212,28 +212,28 @@ class DistributedEVDataset(object):
             self.n_fea = get_n_feature(extra_feat)  # Calculate number of feature channels
 
             # Partition data into clients based on prediction type
-            if pred_type == 'station':
-                # Create individual client for each station
-                for idx, station_id in enumerate(station_ids):
-                    client_feat = feat_array[:, idx:idx + 1]  # Extract single station features
+            if pred_type == 'site
+                # Create individual client for each site
+                for idx, site in enumerate(sitsite
+                    client_feat = feat_array[:, idx:idx + 1]  # Extract single siteatures
                     client_extra = extra_feat[:, idx:idx + 1, :] if extra_feat is not None else None  # Extract auxiliary features
-                    client_id = f"{city_abbr}_{station_id}"  # Create client ID: city_station
+                    client_id = f"{city_abbr}_{site}"  # Create client ID: city_sitsite
                     self.clients_data[client_id] = {
-                        'feat'      : client_feat,      # Station features
-                        'extra_feat': client_extra,     # Station auxiliary features
+                        'feat'      : client_feat,      # Site features
+                        'extra_feat': client_extra,     # Site auxiliary features
                         'time'      : time_series       # Time series
                     }
             elif pred_type == 'city':
                 # Create single client for entire city (aggregated data)
-                aggregated_feat = np.sum(feat_array, axis=1, keepdims=True)  # Sum across all stations
-                aggregated_extra = np.mean(extra_feat, axis=1, keepdims=True) if extra_feat is not None else None  # Mean across stations
+                aggregated_feat = np.sum(feat_array, axis=1, keepdims=True)  # Sum across all site
+                aggregated_extra = np.mean(extra_feat, axis=1, keepdims=True) if extra_feat is not None else None  # Mean across site
                 self.clients_data[city_abbr] = {
                     'feat'      : aggregated_feat,      # City-level features
                     'extra_feat': aggregated_extra,     # City-level auxiliary features
                     'time'      : time_series           # Time series
                 }
             else:
-                raise ValueError("Unknown pred_type - must be 'station' or 'city'")
+                raise ValueError("Unknown pred_type - must be 'siter 'city'")
 
         # Perform final client partitioning for training and evaluation
         self.partition_clients(eval_percentage, eval_city, pred_type)
@@ -248,20 +248,20 @@ class DistributedEVDataset(object):
         Partition client IDs into training and evaluation sets.
 
         This method separates clients into training and evaluation sets based on
-        the prediction type and evaluation parameters. For station-level prediction,
-        it partitions stations within each city. For city-level prediction, it
+        the prediction type and evaluation parameters. For sitevel prediction,
+        it partitions siteithin each city. For city-level prediction, it
         reserves a specific city for evaluation.
 
         Args:
-            eval_percentage (float): Percentage of clients for evaluation (station mode).
+            eval_percentage (float): Percentage of clients for evaluation (sitede).
             eval_city (str): City code for evaluation (city mode).
-            pred_type (str): 'station' or 'city'.
+            pred_type (str): 'siter 'city'.
 
         Raises:
             ValueError: If pred_type is invalid.
         """
-        if pred_type == 'station':
-            # Station-level partitioning: split stations within each city
+        if pred_type == 'site
+            # Site-level partitioning: split siteithin each city
             training_clients_data = {}  # Store training clients
             eval_clients_data = {}      # Store evaluation clients
             city_clients = defaultdict(list)  # Group clients by city
@@ -312,7 +312,7 @@ class DistributedEVDataset(object):
             self.eval_clients_data = eval_clients_data
             
         else:
-            raise ValueError("Unknown pred_type - must be 'station' or 'city'")
+            raise ValueError("Unknown pred_type - must be 'site' or 'city'")
 
     def get_client_ids(self) -> list[str]:
         """

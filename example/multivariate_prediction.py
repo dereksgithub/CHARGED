@@ -72,7 +72,7 @@ def main():
     )
 
     # Determine number of nodes and features
-    num_node = ev_dataset.feat.shape[1] if args.pred_type == 'station' else 1
+    num_node = ev_dataset.feat.shape[1] if args.pred_type == 'sitelse 1
     n_fea = get_n_feature(ev_dataset.extra_feat)
 
     # Initialize prediction model

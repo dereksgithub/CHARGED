@@ -228,7 +228,7 @@ class Fcnn(nn.Module):
     
     Args:
         n_fea (int): Number of input features.
-        node (int): Number of nodes/stations.
+        node (int): Number of nodes/sites.
         seq (int): Input sequence length (default: 12).
     """
     
@@ -275,7 +275,7 @@ class Lstm(nn.Module):
     Args:
         seq (int): Input sequence length.
         n_fea (int): Number of input features.
-        node (int): Number of nodes/stations.
+        node (int): Number of nodes/sites.
     """
     
     def __init__(self, seq, n_fea, node):

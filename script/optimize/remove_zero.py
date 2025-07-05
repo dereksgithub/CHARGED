@@ -8,15 +8,15 @@
 """
 Script for removing zero-value clusters from aggregated charging data.
 
-This script identifies and removes clusters (stations) that have zero values
+This script identifies and removes clusters (sites) that have zero values
 across all time periods for duration and volume metrics. It also updates
-related data files including pricing, distance, and station information.
+related data files including pricing, distance, and site information.
 
 Features:
     - Zero cluster detection across multiple metrics
     - Comprehensive data cleanup
     - Related file updates
-    - Station and pile information updates
+    - Site and charger information updates
 """
 
 from tqdm import tqdm
@@ -107,24 +107,24 @@ if __name__ == '__main__':
         # Update general information
         info = pd.read_csv(f'{data_path}info.csv', index_col=None)
 
-        # Update pile information
-        piles = pd.read_csv(f'{data_path}piles.csv', index_col=None)
-        piles['station_id'] = piles['station_id'].astype(str)
-        piles = piles[~piles['station_id'].isin(zero_clusters)]
-        piles.to_csv(f'{data_path}piles.csv', index=False)
+        # Update charger information
+        chargers = pd.read_csv(f'{data_path}chargers.csv', index_col=None)
+        chargers['site_id'] = chargers['site_id'].astype(str)
+        chargers = chargers[~chargers['site_id'].isin(zero_clusters)]
+        chargers.to_csv(f'{data_path}chargers.csv', index=False)
 
-        # Update station information
-        stations = pd.read_csv(f'{data_path}stations.csv', index_col=None)
-        stations['station_id'] = stations['station_id'].astype(str)
-        stations = stations[~stations['station_id'].isin(zero_clusters)]
-        stations.to_csv(f'{data_path}stations.csv', index=False)
+        # Update site information
+        sites = pd.read_csv(f'{data_path}sites.csv', index_col=None)
+        sites['site_id'] = sites['site_id'].astype(str)
+        sites = sites[~sites['site_id'].isin(zero_clusters)]
+        sites.to_csv(f'{data_path}sites.csv', index=False)
 
         # Update summary statistics in info file
-        total_piles = piles.shape[0]
-        total_stations = stations.shape[0]
-        info['total_piles'] = total_piles
-        info['total_stations'] = total_stations
-        avg_power = piles['avg_power'].mean()
+        total_chargers = chargers.shape[0]
+        total_sites = sites.shape[0]
+        info['total_chargers'] = total_chargers
+        info['total_sites'] = total_sites
+        avg_power = chargers['avg_power'].mean()
         info['avg_power'] = avg_power
         info.to_csv(f'{data_path}info.csv', index=False)
 

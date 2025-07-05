@@ -6,16 +6,16 @@
 # @Last Modified Time : 2025/4/1 10:20
 
 """
-Script for updating and aggregating station information across multiple cities.
+Script for updating and aggregating site information across multiple cities.
 
-This script processes station data from different cities, computes cluster metrics,
+This script processes site data from different cities, computes cluster metrics,
 and generates aggregated information files. It handles both regular and zero-removed
-datasets, providing comprehensive station clustering and metric calculations.
+datasets, providing comprehensive site clustering and metric calculations.
 
 Key features:
     - Geographic coordinate conversion and projection
     - Cluster perimeter and area calculations
-    - Station aggregation based on file type
+    - Site aggregation based on file type
     - Support for multiple cities and data formats
 """
 
@@ -109,13 +109,13 @@ def filter_zero_clusters(aggregated_dict):
             zero_clusters = zero_clusters.intersection(clusters_zero)
     return zero_clusters
 
-def read_and_aggregate(path, station_cluster):
+def read_and_aggregate(path, site_cluster):
     """
-    Read data file and aggregate by station clusters.
+    Read data file and aggregate by site clusters.
     
     Args:
         path (str): Path to the data file
-        station_cluster (dict): Station clustering information
+        site_cluster (dict): Site clustering information
         
     Returns:
         pd.DataFrame: Aggregated data grouped by clusters
@@ -125,16 +125,16 @@ def read_and_aggregate(path, station_cluster):
 
     file_name = os.path.splitext(os.path.basename(path))[0]
 
-    station_to_cluster = {}
-    for cluster_id, details in station_cluster.items():
-        station_ids = details[0]
-        for station_id in station_ids:
-            station_to_cluster[station_id] = cluster_id
+    site_to_cluster = {}
+    for cluster_id, details in site_cluster.items():
+        site_ids = details[0]
+        for site_id in site_ids:
+            site_to_cluster[site_id] = cluster_id
 
-    valid_stations = [station_id for station_id in data.columns if station_id in station_to_cluster]
-    data = data[valid_stations]
+    valid_sites = [site_id for site_id in data.columns if site_id in site_to_cluster]
+    data = data[valid_sites]
 
-    data.columns = [station_to_cluster[station_id] for station_id in data.columns]
+    data.columns = [site_to_cluster[site_id] for site_id in data.columns]
 
     # Determine aggregation rule based on filename
     if 'duration' in file_name or 'volume' in file_name:
@@ -164,28 +164,28 @@ if __name__ == '__main__':
             os.makedirs(save_path, exist_ok=True)
 
             lanlon = pd.read_csv(f'{data_path}/lanlon.csv')
-            lanlon['station_id'] = lanlon['station_id'].astype(str)
-            lanlon = lanlon[['station_id', 'longitude', 'latitude']]
-            lanlon = lanlon.groupby('station_id', as_index=True).mean()
+            lanlon['site_id'] = lanlon['site_id'].astype(str)
+            lanlon = lanlon[['site_id', 'longitude', 'latitude']]
+            lanlon = lanlon.groupby('site_id', as_index=True).mean()
 
-            with open(os.path.join(data_path, 'station_cluster.json'), 'r', encoding='utf-8') as f:
-                station_cluster = json.load(f)
+            with open(os.path.join(data_path, 'site_cluster.json'), 'r', encoding='utf-8') as f:
+                site_cluster = json.load(f)
 
             inf_list = []
-            for cluster_id, details in station_cluster.items():
-                station_ids = details[0]
+            for cluster_id, details in site_cluster.items():
+                site_ids = details[0]
                 cluster_lon = details[1]
                 cluster_lat = details[2]
-                station_ids = [str(sid) for sid in station_ids]
-                cluster_data = lanlon.loc[lanlon.index.intersection(station_ids)]
-                pile_num = len(cluster_data)
+                site_ids = [str(sid) for sid in site_ids]
+                cluster_data = lanlon.loc[lanlon.index.intersection(site_ids)]
+                charger_num = len(cluster_data)
                 points = list(cluster_data[['longitude', 'latitude']].itertuples(index=False, name=None))
                 perimeter, area = compute_cluster_metrics(points, r/111/1000)
                 inf_list.append({
                     'ID': cluster_id,
                     'longitude': cluster_lon,
                     'latitude': cluster_lat,
-                    'pile_num': pile_num,
+                    'charger_num': charger_num,
                     'perimeter': perimeter,
                     'area': area
                 })

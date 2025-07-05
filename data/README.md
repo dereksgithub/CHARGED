@@ -7,8 +7,8 @@ The CHARGED (City-scale and Harmonized Dataset for Global Electric Vehicle Charg
 ## Dataset Versions
 
 Each city has two data versions:
-- **Standard version**: Complete dataset with all charging stations
-- **`xxx_remove_zero` version**: Filtered dataset with charging stations that have zero charge volume, charge duration, and price removed for cleaner analysis
+- **Standard version**: Complete dataset with all charging sites
+- **`xxx_remove_zero` version**: Filtered dataset with charging sites that have zero charge volume, charge duration, and price removed for cleaner analysis
 
 ## Data Structure
 
@@ -22,7 +22,7 @@ Each city folder contains 10 CSV files. Due to size limitations, some files larg
 - **Description**: Hourly charging volume (energy consumption) data
 - **Format**: Time series with hourly granularity
 - **Index**: Timestamps (hourly intervals)
-- **Columns**: Station IDs
+- **Columns**: Site IDs
 - **Unit**: Kilowatt-hours (kWh)
 - **Use Case**: Primary target variable for demand prediction
 
@@ -30,7 +30,7 @@ Each city folder contains 10 CSV files. Due to size limitations, some files larg
 - **Description**: Charging duration data representing time spent charging
 - **Format**: Time series with hourly granularity
 - **Index**: Timestamps (hourly intervals)
-- **Columns**: Station IDs
+- **Columns**: Site IDs
 - **Unit**: Hours (h)
 - **Note**: Values represent charging duration between consecutive time intervals
 
@@ -40,7 +40,7 @@ Each city folder contains 10 CSV files. Due to size limitations, some files larg
 - **Description**: Electricity charging fees (energy cost)
 - **Format**: Time series with hourly granularity
 - **Index**: Timestamps (hourly intervals)
-- **Columns**: Station IDs
+- **Columns**: Site IDs
 - **Units by City**:
   - Los Angeles: USD/kWh
   - São Paulo: Brazilian Real (BRL)/kWh
@@ -53,48 +53,48 @@ Each city folder contains 10 CSV files. Due to size limitations, some files larg
 - **Description**: Service fees (additional charges beyond electricity cost)
 - **Format**: Time series with hourly granularity
 - **Index**: Timestamps (hourly intervals)
-- **Columns**: Station IDs
+- **Columns**: Site IDs
 - **Note**: São Paulo, Johannesburg, and Melbourne have no service fees (uniformly set to 0)
 - **Units**: Same as e_price.csv for each respective city
 
 ### Infrastructure Information
 
-#### stations.csv
-- **Description**: Comprehensive information about charging stations
+#### sites.csv
+- **Description**: Comprehensive information about charging sites
 - **Key Fields**:
 
 | Field | Description | Unit |
 |-------|-------------|------|
-| station_id | Unique identifier for the charging station | N/A |
-| longitude | Geographical longitude of station location | Degrees |
-| latitude | Geographical latitude of station location | Degrees |
-| pile_num | Number of charging piles at the station | Count |
-| total_duration | Total charging duration recorded at station | Hours |
-| total_volume | Total charging volume recorded at station | kWh |
+| site_id | Unique identifier for the charging site | N/A |
+| longitude | Geographical longitude of site location | Degrees |
+| latitude | Geographical latitude of site location | Degrees |
+| charger_num | Number of charging chargers at the site | Count |
+| total_duration | Total charging duration recorded at site | Hours |
+| total_volume | Total charging volume recorded at site | kWh |
 | avg_power | Average charging power per charging record | kW |
 | perimeter | Perimeter of DBSCAN cluster shape | Meters (m) |
 | area | Area of DBSCAN cluster shape | Square meters (m²) |
 
-#### piles.csv
-- **Description**: Detailed information about individual charging piles
+#### chargers.csv
+- **Description**: Detailed information about individual charging chargers
 - **Key Fields**:
 
 | Field | Description | Unit |
 |-------|-------------|------|
-| pile_id | Unique identifier for the charging pile | N/A |
-| longitude | Geographical longitude of pile location | Degrees |
-| latitude | Geographical latitude of pile location | Degrees |
-| station_id | Identifier of the station containing this pile | N/A |
-| total_duration | Total charging duration at this pile | Hours |
-| total_volume | Total energy delivered at this pile | kWh |
+| charger_id | Unique identifier for the charging charger | N/A |
+| longitude | Geographical longitude of charger location | Degrees |
+| latitude | Geographical latitude of charger location | Degrees |
+| site_id | Identifier of the site containing this charger | N/A |
+| total_duration | Total charging duration at this charger | Hours |
+| total_volume | Total energy delivered at this charger | kWh |
 | avg_power | Average charging power per charging record | kW |
 
 ### Auxiliary Data
 
 #### distance.csv
-- **Description**: Inter-station distance matrix
+- **Description**: Inter-site distance matrix
 - **Format**: Symmetric matrix
-- **Index/Columns**: Station IDs
+- **Index/Columns**: Site IDs
 - **Calculation**: Geodesic distance based on ellipsoidal Earth model
 - **Unit**: Kilometers (km)
 - **Use Case**: Spatial analysis and clustering
@@ -164,8 +164,8 @@ Each city folder contains 10 CSV files. Due to size limitations, some files larg
 | city | City name | N/A |
 | country | Country name | N/A |
 | abbreviation | City code (3-letter) | N/A |
-| total_piles | Total number of charging piles | Count |
-| total_stations | Total number of charging stations | Count |
+| total_chargers | Total number of charging chargers | Count |
+| total_sites | Total number of charging sites | Count |
 | DBSCAN_eps | DBSCAN clustering radius parameter | Meters (m) |
 | total_duration | Total charging duration in dataset | Hours |
 | total_volume | Total charging volume in dataset | kWh |
@@ -176,7 +176,7 @@ Each city folder contains 10 CSV files. Due to size limitations, some files larg
 ### Preprocessing Applied
 - **Anomaly Detection**: Outliers identified and corrected using IQR method
 - **Zero Sequence Handling**: Zero sequences interpolated
-- **Station Clustering**: Geographic clustering using DBSCAN algorithm
+- **Site Clustering**: Geographic clustering using DBSCAN algorithm
 
 ### Known Limitations
 - Some cities may have missing data during certain time periods

@@ -59,9 +59,9 @@ def main():
         volume2.index = pd.to_datetime(volume2.index)
         volume2 = volume2.resample('D').sum()
 
-        for station in volume.columns[:-2]:
-            series = volume_grouped[station]
-            series2 = volume2[station]
+        for site volume.columns[:-2]:
+            series = volume_grouped[site
+            series2 = volume2[site
             data_series = series[(series.index.get_level_values(0).month >= 4) & (series.index.get_level_values(0).month <= 8)]
             label_series = series2[series2.index.month == 9]
             test_data.append(data_series.values)

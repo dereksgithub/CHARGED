@@ -53,7 +53,7 @@ def main():
 
     # Create GluonTS dataset and split
     combined_df = pd.concat(dfs, axis=1)
-    combined_df.columns = [f'station_{i}' for i in range(combined_df.shape[1])]
+    combined_df.columns = [f'site}' for i in range(combined_df.shape[1])]
     ds = PandasDataset(dict(combined_df))
     offset = -30
     train_ds, test_template = split(ds, offset=offset)

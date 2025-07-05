@@ -102,7 +102,7 @@ class CommonClient(object):
 
         # Initialize model with client-specific parameters
         model = model_module(
-            num_node=1,  # Single node for client (station or city)
+            num_node=1,  # Single node for client (site or city)
             n_fea=n_fea,  # Number of auxiliary features
             model_name=model_name,  # Model architecture name
             seq_l=seq_l,  # Input sequence length

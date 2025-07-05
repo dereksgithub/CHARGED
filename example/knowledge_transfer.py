@@ -49,12 +49,12 @@ def main():
     args = federated_parse_args()
 
     # Construct base output path
-    if args.pred_type == 'station':
+    if args.pred_type == 'site':
         base = f"{args.output_path}{args.pred_type}/{args.city}/" + \
-               f"{args.model}-{args.feature}-{args.auxiliary}-{args.seq_l}-{args.pre_len}-{args.max_stations}-{args.eval_percentage}"
+               f"{args.model}-{args.feature}-{args.auxiliary}-{args.seq_l}-{args.pre_len}-{args.max_sites}-{args.eval_percentage}"
     else:
         base = f"{args.output_path}{args.pred_type}/{args.city}/" + \
-               f"{args.model}-{args.feature}-{args.auxiliary}-{args.seq_l}-{args.pre_len}-{args.max_stations}-{args.eval_city}"
+               f"{args.model}-{args.feature}-{args.auxiliary}-{args.seq_l}-{args.pre_len}-{args.max_sites}-{args.eval_city}"
 
     # Ensure unique directory
     out_dir = base
@@ -82,7 +82,7 @@ def main():
         pred_type=args.pred_type,
         eval_percentage=args.eval_percentage,
         eval_city=args.eval_city,
-        max_stations=args.max_stations,
+        max_sites=args.max_sites,
     )
 
     print(f"Running federated evaluation on {args.city} with model={args.model}, feature={args.feature}, "

@@ -20,8 +20,8 @@ def federated_parse_args():
         argparse.Namespace: Parsed arguments with the following attributes:
             city (str): Comma-separated list or code for all participating cities (default: 'SZH').
             eval_city (str): City code reserved for evaluation (default: 'SZH').
-            max_stations (int): Maximum number of stations per city (default: 200).
-            eval_percentage (int): Percentage of stations for evaluation in station mode (default: 20).
+            max_siteint): Maximum number of sitsitecity (default: 200).
+            eval_percentage (int): Percentage of siteor evaluation in sitsite(default: 20).
             device (int): CUDA device index (default: 0).
             seed (int): Random seed for reproducibility (default: 2025).
             feature (str): Feature type to predict ('volume' or 'duration').
@@ -31,7 +31,7 @@ def federated_parse_args():
             model (str): Model name to use for prediction (default: 'multipatchformer').
             seq_l (int): Input sequence length (default: 12).
             pre_len (int): Prediction horizon length (default: 1).
-            pred_type (str): Prediction granularity ('station' or 'city').
+            pred_type (str): Prediction granularity ('siter 'city').
             batch_size (int): Batch size for local training (default: 32).
             global_epoch (int): Number of global federated rounds (default: 50).
             local_epoch (int): Number of local training epochs per client (default: 1).
@@ -51,12 +51,12 @@ def federated_parse_args():
         help="City abbreviation reserved for evaluation."
     )
     parser.add_argument(
-        '--max_stations', type=int, default=200,
-        help="Maximum number of stations per city."
+        '--max_site', type=int, default=200,
+        help="Maximum number of siteer city."
     )
     parser.add_argument(
         '--eval_percentage', type=int, default=20,
-        help="Percentage of stations for evaluation in station mode."
+        help="Percentage of siteor evaluation in sitsite"
     )
     parser.add_argument(
         '--device', type=int, default=0,
@@ -95,8 +95,8 @@ def federated_parse_args():
         help="Prediction horizon length."
     )
     parser.add_argument(
-        '--pred_type', type=str, default='station',
-        help="Prediction granularity ('station' or 'city')."
+        '--pred_type', type=str, default='site',
+        help="Prediction granularity ('siter 'city')."
     )
     parser.add_argument(
         '--batch_size', type=int, default=32,

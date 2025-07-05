@@ -100,7 +100,7 @@ python example/knowledge_transfer.py \
     --city AMS JHB LOA MEL SPO SZH \
     --model transformer \
     --feature volume \
-    --pred_type station \
+    --pred_type site
     --global_epoch 50 \
     --local_epoch 10
 ```
@@ -144,20 +144,20 @@ python example/test_moment_all.py
 ## 🔧 Data Processing Pipeline
 
 ### 1. Data Collection
-- **Charging Data**: Volume, duration from charging stations
+- **Charging Data**: Volume, duration from charging site
 - **Weather Data**: Temperature, precipitation, wind conditions
 - **POI Data**: Points of interest from OpenStreetMap
-- **Station Information**: Location, capacity, pricing details
+- **Site Information**: Location, capacity, pricing details
 
 ### 2. Data Preprocessing
 - **Anomaly Detection**: Identify and fix outliers using IQR method
 - **Zero Sequence Handling**: Detect and interpolate continuous zero sequences
-- **Station Clustering**: Geographic clustering using DBSCAN algorithm
+- **Site Clustering**: Geographic clustering using DBSCAN algorithm
 - **Feature Engineering**: Temporal and spatial feature extraction
 
 ### 3. Data Aggregation
 - **Temporal Aggregation**: Hourly to daily aggregation
-- **Spatial Aggregation**: Pile-level to station-level aggregation
+- **Spatial Aggregation**: Charger-level to sitevel aggregation
 - **Cross-Validation**: Time-based data splitting for evaluation
 
 ## 📊 Data Schema
@@ -170,18 +170,18 @@ python example/test_moment_all.py
 - **Fee**: Charging cost information
 - **Weather**: Temperature, humidity, precipitation, wind speed
 - **Temporal**: Hour of day, day of week, month
-- **Spatial**: Station coordinates, cluster centroids, distance matrices
+- **Spatial**: Site coordinates, cluster centroids, distance matrices
 - **POI**: Nearby amenities, commercial areas, transportation hubs
 
 ## 🎯 Use Cases
 
 ### 1. Infrastructure Planning
 - **Capacity Planning**: Predict future charging demand
-- **Location Optimization**: Identify optimal station placement
+- **Location Optimization**: Identify optimal siteacement
 - **Grid Integration**: Plan electrical infrastructure upgrades
 
 ### 2. Operational Optimization
-- **Load Balancing**: Distribute charging load across stations
+- **Load Balancing**: Distribute charging load across site
 - **Pricing Strategy**: Dynamic pricing based on demand patterns
 - **Maintenance Scheduling**: Predictive maintenance planning
 

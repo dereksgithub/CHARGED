@@ -9,14 +9,14 @@
 Script for temporal aggregation of electric vehicle charging data.
 
 This script processes raw charging session data and aggregates it by hour
-and station to create time series datasets. It handles large datasets
+and site to create time series datasets. It handles large datasets
 using chunked processing and calculates key metrics including duration,
 energy consumption, and occupancy rates.
 
 Features:
     - Chunked processing for large datasets
     - Temporal aggregation by hour
-    - Station-wise aggregation
+    - Site-wise aggregation
     - Occupancy rate calculation
     - Multiple output formats (duration, volume, occupancy)
 """
@@ -49,8 +49,8 @@ if __name__ == '__main__':
             chunk['time_hour'] = chunk['time_new'].dt.floor('H')
             chunk['nonzero'] = (chunk['duration'] != 0).astype(int)
 
-            # Aggregate by hour and station
-            agg_chunk = chunk.groupby(['time_hour', 'station_id'], as_index=False).agg(
+            # Aggregate by hour and site
+            agg_chunk = chunk.groupby(['time_hour', 'site_id'], as_index=False).agg(
                 duration=('duration', 'sum'),      # Total charging duration
                 kwh=('kwh', 'sum'),               # Total energy consumption
                 count=('nonzero', 'sum')          # Number of charging sessions
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
         # Combine all chunks and perform final aggregation
         agg_df = pd.concat(agg_list, ignore_index=True)
-        agg_df = agg_df.groupby(['time_hour', 'station_id'], as_index=False).agg({
+        agg_df = agg_df.groupby(['time_hour', 'site_id'], as_index=False).agg({
             'duration': 'sum',
             'kwh': 'sum',
             'count': 'sum'
@@ -75,9 +75,9 @@ if __name__ == '__main__':
         agg_df['occupancy'] = (agg_df['count'] / expected_count).clip(upper=1)
 
         # Create pivot tables for different metrics
-        pivot_duration = agg_df.pivot(index='time_hour', columns='station_id', values='duration')
-        pivot_kwh = agg_df.pivot(index='time_hour', columns='station_id', values='kwh')
-        pivot_occupancy = agg_df.pivot(index='time_hour', columns='station_id', values='occupancy')
+        pivot_duration = agg_df.pivot(index='time_hour', columns='site_id', values='duration')
+        pivot_kwh = agg_df.pivot(index='time_hour', columns='site_id', values='kwh')
+        pivot_occupancy = agg_df.pivot(index='time_hour', columns='site_id', values='occupancy')
 
         # Sort by time index
         pivot_duration.sort_index(inplace=True)

@@ -10,12 +10,12 @@ Module for loading and processing electric vehicle dataset features.
 
 This module provides comprehensive functionality for loading and preprocessing
 electric vehicle charging data, including volume/duration features, pricing
-information, weather data, and station metadata. It supports cross-validation
+information, weather data, and site metadata. It supports cross-validation
 splits and DataLoader creation for deep learning training.
 
 Key Features:
     - Loads and normalizes multiple data sources (volume/duration, pricing, weather)
-    - Supports station selection strategies (top, middle, random)
+    - Supports site selection strategies (top, middle, random)
     - Implements cross-validation splits by month
     - Creates PyTorch DataLoaders for training, validation, and testing
     - Handles auxiliary feature construction and normalization
@@ -39,7 +39,7 @@ class EVDataset(object):
     This class provides a comprehensive interface for loading, preprocessing,
     and managing electric vehicle charging data. It handles multiple data
     sources including main features (volume or duration), pricing information,
-    weather data, and station metadata. The class supports various station
+    weather data, and site metadata. The class supports various site
     selection strategies and provides methods for cross-validation splitting
     and DataLoader creation.
 
@@ -47,8 +47,8 @@ class EVDataset(object):
         feature (str): Type of feature to load ('volume' or 'duration').
         auxiliary (str): Auxiliary feature modes ('None', 'all', or '+'-separated list).
         data_path (str): Root path to CSV files.
-        feat (np.ndarray): Primary feature array [time, stations].
-        extra_feat (np.ndarray): Auxiliary feature array [time, stations, features].
+        feat (np.ndarray): Primary feature array [time, sites].
+        extra_feat (np.ndarray): Auxiliary feature array [time, sites, features].
         time (pd.DatetimeIndex): Timestamps for each row in feat.
         scaler (StandardScaler): Scaler fitted on training data.
         train_feat, valid_feat, test_feat (np.ndarray): Splits of feat.
@@ -61,7 +61,7 @@ class EVDataset(object):
             feature: str,
             auxiliary: str,
             data_path: str,
-            max_stations: int = 300,
+            max_sites: int = 300,
             weather_columns: list[str] = ['temp', 'precip', 'visibility'],
             selection_mode: str = 'top',
     ) -> None:
@@ -72,7 +72,7 @@ class EVDataset(object):
         1. Loads main feature data (volume or duration)
         2. Loads and normalizes pricing data
         3. Loads and normalizes weather data
-        4. Loads station metadata and applies selection strategy
+        4. Loads site metadata and applies selection strategy
         5. Constructs auxiliary features based on configuration
         6. Normalizes all data for machine learning
 
@@ -80,9 +80,9 @@ class EVDataset(object):
             feature (str): Feature file to load; 'volume' or 'duration'.
             auxiliary (str): Auxiliary data mode: 'None', 'all', or combination of 'e_price', 's_price', weather keys.
             data_path (str): Directory path containing CSV files.
-            max_stations (int): Maximum number of stations to select (default: 300).
+            max_sites (int): Maximum number of sites to select (default: 300).
             weather_columns (list[str]): Columns to load from weather data (default: ['temp', 'precip', 'visibility']).
-            selection_mode (str): Station selection mode: 'top', 'middle', or 'random' (default: 'top').
+            selection_mode (str): Site selection mode: 'top', 'middle', or 'random' (default: 'top').
 
         Raises:
             ValueError: If feature name or selection_mode is invalid.
@@ -125,45 +125,45 @@ class EVDataset(object):
             # Scale visibility from [0, 50] to [0, 1]
             self.weather['visibility'] = self.weather['visibility'] / 50
 
-        # Load station metadata for selection and feature construction
-        stations_info = pd.read_csv(f'{self.data_path}stations.csv', header=0)
-        stations_info = stations_info.set_index("station_id")  # Set station_id as index
-        stations_info.index = stations_info.index.astype(str)  # Convert index to string type
+        # Load site metadata for selection and feature construction
+        sites_info = pd.read_csv(f'{self.data_path}sites.csv', header=0)
+        sites_info = sites_info.set_index("site_id")  # Set site_id as index
+        sites_info.index = sites_info.index.astype(str)  # Convert index to string type
 
-        # Select subset of stations if exceeding max_stations limit
-        if len(stations_info) > max_stations:
+        # Select subset of sites if exceeding max_sites limit
+        if len(sites_info) > max_sites:
             if selection_mode == 'top':
-                # Select top stations by total_duration (most active)
-                selected_stations = stations_info.sort_values(
+                # Select top sites by total_duration (most active)
+                selected_sites = sites_info.sort_values(
                     by='total_duration', ascending=False
-                ).head(max_stations)
+                ).head(max_sites)
             elif selection_mode == 'middle':
-                # Select middle-range stations by total_duration
-                sorted_stations = stations_info.sort_values(
+                # Select middle-range sites by total_duration
+                sorted_sites = sites_info.sort_values(
                     by='total_duration', ascending=True
                 )
-                start = max((len(sorted_stations) - max_stations) // 2, 0)  # Calculate start index
-                selected_stations = sorted_stations.iloc[start:start + max_stations]
+                start = max((len(sorted_sites) - max_sites) // 2, 0)  # Calculate start index
+                selected_sites = sorted_sites.iloc[start:start + max_sites]
             elif selection_mode == 'random':
-                # Select random sample of stations
-                selected_stations = stations_info.sample(
-                    n=max_stations, random_state=42  # Fixed seed for reproducibility
+                # Select random sample of sites
+                selected_sites = sites_info.sample(
+                    n=max_sites, random_state=42  # Fixed seed for reproducibility
                 )
             else:
                 raise ValueError(f"Unknown selection_mode: {selection_mode}")
 
-            # Filter features and re-scale prices for selected stations
-            selected_ids = selected_stations.index.tolist()  # Get selected station IDs
+            # Filter features and re-scale prices for selected sites
+            selected_ids = selected_sites.index.tolist()  # Get selected site IDs
             self.feat = self.feat[selected_ids]  # Filter main features
             
-            # Re-load and re-scale price data for selected stations
+            # Re-load and re-scale price data for selected sites
             e_price_df = pd.read_csv(f'{self.data_path}e_price.csv', index_col=0, header=0)
             s_price_df = pd.read_csv(f'{self.data_path}s_price.csv', index_col=0, header=0)
             self.e_price = price_scaler.fit_transform(e_price_df[selected_ids])  # Re-scale electricity prices
             self.s_price = price_scaler.fit_transform(s_price_df[selected_ids])  # Re-scale service prices
 
-        # Normalize station latitude and longitude to [0, 1] range
-        lat_long = stations_info.loc[self.feat.columns, ['latitude', 'longitude']].values
+        # Normalize site latitude and longitude to [0, 1] range
+        lat_long = sites_info.loc[self.feat.columns, ['latitude', 'longitude']].values
         lat_norm = (lat_long[:, 0] + 90) / 180  # Normalize latitude: [-90, 90] -> [0, 1]
         lon_norm = (lat_long[:, 1] + 180) / 360  # Normalize longitude: [-180, 180] -> [0, 1]
         self.lat_long_norm = np.stack([lat_norm, lon_norm], axis=1)  # Stack into 2D array
@@ -191,7 +191,7 @@ class EVDataset(object):
                 self.extra_feat = np.concatenate([
                     self.extra_feat,
                     np.repeat(
-                        self.weather.values[:, np.newaxis, :],  # Repeat weather for all stations
+                        self.weather.values[:, np.newaxis, :],  # Repeat weather for all sites
                         self.feat.shape[1], axis=1
                     )
                 ], axis=2)  # Add weather features
@@ -214,7 +214,7 @@ class EVDataset(object):
                             self.extra_feat,
                             np.repeat(
                                 self.weather[add_feat].values[:, np.newaxis, np.newaxis],
-                                self.feat.shape[1], axis=1  # Repeat for all stations
+                                self.feat.shape[1], axis=1  # Repeat for all sites
                             )
                         ], axis=2)
             

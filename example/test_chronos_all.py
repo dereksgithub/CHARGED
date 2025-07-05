@@ -48,8 +48,8 @@ def main():
         volume = pd.read_csv(file_path, header=0, index_col=0)
         volume.index = pd.to_datetime(volume.index)
         volume = volume.resample('D').sum()
-        for station in volume.columns:
-            series = volume[station]
+        for site volume.columns:
+            series = volume[site
             data_series = series[(series.index.month >= 4) & (series.index.month <= 8)]
             label_series = series[series.index.month == 9]
             test_data.append(data_series.values)
