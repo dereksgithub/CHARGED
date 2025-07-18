@@ -162,19 +162,13 @@ python example/test_moment_all.py
 
 ## 🔧 Data Processing Pipeline
 
-### 1. Data Collection
-- **Charging Data**: Volume, duration from charging site
-- **Weather Data**: Temperature, precipitation, wind conditions
-- **POI Data**: Points of interest from OpenStreetMap
-- **Site Information**: Location, capacity, pricing details
-
-### 2. Data Preprocessing
+### Data Preprocessing
 - **Anomaly Detection**: Identify and fix outliers using IQR method
 - **Zero Sequence Handling**: Detect and interpolate continuous zero sequences
 - **Site Clustering**: Geographic clustering using DBSCAN algorithm
 - **Feature Engineering**: Temporal and spatial feature extraction
 
-### 3. Data Aggregation
+### Data Aggregation
 - **Temporal Aggregation**: Hourly to daily aggregation
 - **Spatial Aggregation**: Charger-level to sitevel aggregation
 - **Cross-Validation**: Time-based data splitting for evaluation
