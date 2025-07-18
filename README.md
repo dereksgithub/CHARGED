@@ -8,6 +8,25 @@
 
 A comprehensive framework for electric vehicle charging demand prediction and analysis across multiple global cities. This project provides harmonized datasets, advanced prediction models, and federated learning capabilities for city-scale EV charging behavior analysis and infrastructure planning.
 
+## 📚 Citation
+
+If this project is helpful to your research, please cite our papers:
+
+**Guo, Z., You, L., Zhu, R. et al. A City-scale and Harmonized Dataset for Global Electric Vehicle Charging Demand Analysis. Sci Data 12, 1254 (2025). https://doi.org/10.1038/s41597-025-05584-7**
+
+```bibtex
+@article{guo2025a,
+  author={Guo, Zihan and You, Linlin and Zhu, Rui and Zhang, Yan and Yuen, Chau},
+  title={A City-scale and Harmonized Dataset for Global Electric Vehicle Charging Demand Analysis},
+  journal={Scientific Data},
+  volume={12},
+  pages={1254},
+  year={2025},
+  issn={2052-4463},
+  doi={10.1038/s41597-025-05584-7},
+}
+```
+
 ## 🌟 Key Features
 
 - **Multi-City Dataset**: Harmonized charging data from 6 major cities worldwide
