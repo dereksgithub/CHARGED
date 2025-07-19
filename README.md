@@ -8,7 +8,7 @@
 
 A comprehensive framework for electric vehicle charging demand prediction and analysis across multiple global cities. This project provides harmonized datasets, advanced prediction models, and federated learning capabilities for city-scale EV charging behavior analysis and infrastructure planning.
 
-## 📚 Citation
+## 📚 Citations
 
 If this project is helpful to your research, please cite our papers:
 
