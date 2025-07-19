@@ -14,10 +14,6 @@ If this project is helpful to your research, please cite our papers:
 
 **Guo, Z., You, L., Zhu, R. et al. A City-scale and Harmonized Dataset for Global Electric Vehicle Charging Demand Analysis. Sci Data 12, 1254 (2025). https://doi.org/10.1038/s41597-025-05584-7**
 
-**Li, H., Qu, H., Tan, X. et al. UrbanEV: An Open Benchmark Dataset for Urban Electric Vehicle Charging Demand Prediction. Sci Data 12, 523 (2025). https://doi.org/10.1038/s41597-025-04874-4**
-
-**You, L., Guo, Z., Yuen, C. et al. A framework reforming personalized Internet of Things by federated meta-learning. Nat Commun 16, 3739 (2025). https://doi.org/10.1038/s41467-025-59217-z**
-
 ```bibtex
 @article{guo2025a,
   author={Guo, Zihan and You, Linlin and Zhu, Rui and Zhang, Yan and Yuen, Chau},
@@ -28,6 +24,11 @@ If this project is helpful to your research, please cite our papers:
   year={2025},
   doi={10.1038/s41597-025-05584-7},
 }
+```
+
+**Li, H., Qu, H., Tan, X. et al. UrbanEV: An Open Benchmark Dataset for Urban Electric Vehicle Charging Demand Prediction. Sci Data 12, 523 (2025). https://doi.org/10.1038/s41597-025-04874-4**
+
+```bibtex
 @article{li2025urbanev,
   author={Li, Han and Qu, Haohao and Tan, Xiaojun and You, Linlin and Zhu, Rui and Fan, Wenqi},
   title={UrbanEV: An open benchmark dataset for urban electric vehicle charging demand prediction},
@@ -37,6 +38,11 @@ If this project is helpful to your research, please cite our papers:
   year={2025},
   doi={10.1038/s41597-025-04874-4},
 }
+```
+
+**You, L., Guo, Z., Yuen, C. et al. A framework reforming personalized Internet of Things by federated meta-learning. Nat Commun 16, 3739 (2025). https://doi.org/10.1038/s41467-025-59217-z**
+
+```bibtex
 @article{you2025framework,
   author={You, Linlin and Guo, Zihan and Yuen, Chau and Chen, Calvin Yu-Chian and Zhang, Yan and Poor, H Vincent},
   title={A framework reforming personalized Internet of Things by federated meta-learning},
