@@ -615,14 +615,14 @@ class FreTS(nn.Module):
 
         # Complex multiplication: (a+bi)(c+di) = (ac-bd) + (ad+bc)i
         o1_real = F.relu(
-            torch.einsum('bijd,dd->bijd', x.real, r) - \  # Real part: ac
-            torch.einsum('bijd,dd->bijd', x.imag, i) + \  # Real part: -bd
+            torch.einsum('bijd,dd->bijd', x.real, r) - #\  # Real part: ac
+            torch.einsum('bijd,dd->bijd', x.imag, i) + #\  # Real part: -bd
             rb  # Real bias
         )
-
+        # Dec 17 Edits line 618,619, 624,625
         o1_imag = F.relu(
-            torch.einsum('bijd,dd->bijd', x.imag, r) + \  # Imaginary part: bc
-            torch.einsum('bijd,dd->bijd', x.real, i) + \  # Imaginary part: ad
+            torch.einsum('bijd,dd->bijd', x.imag, r) + #\  # Imaginary part: bc
+            torch.einsum('bijd,dd->bijd', x.real, i) + #\  # Imaginary part: ad
             ib  # Imaginary bias
         )
 

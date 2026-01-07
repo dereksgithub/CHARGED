@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_84b44f0dfa6eac63f2da947d3009f1e5 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+             <div style="position: fixed; 
+                     top: 10px; left: 50px; width: 350px; height: auto; 
+                     background-color: white; border:2px solid grey; z-index:9999; 
+                     font-size:16px; font-weight: bold; padding: 10px">
+             Top 10 EV Charging Sites in Melbourne
+             </div>
+             
+    
+            <div class="folium-map" id="map_84b44f0dfa6eac63f2da947d3009f1e5" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_84b44f0dfa6eac63f2da947d3009f1e5 = L.map(
+                "map_84b44f0dfa6eac63f2da947d3009f1e5",
+                {
+                    center: [-37.8187023095875, 145.047166565625],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 12,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_d918c171f26ae144bbbcee4cde40a11f = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_d918c171f26ae144bbbcee4cde40a11f.addTo(map_84b44f0dfa6eac63f2da947d3009f1e5);
+        
+    
+            var circle_marker_f257ba0420423d60cba411e0677fc09e = L.circleMarker(
+                [-37.70229521, 145.102327214],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 16.272414972143444, "stroke": true, "weight": 2}
+            ).addTo(map_84b44f0dfa6eac63f2da947d3009f1e5);
+        
+    
+        var popup_2312ed36a98a3ea08b2e54b161d89a44 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_f6468be012f43d67d00763d2b6ff27b4 = $(`<div id="html_f6468be012f43d67d00763d2b6ff27b4" style="width: 100.0%; height: 100.0%;">     <b>Site 14</b><br>     Total Volume: 276,776 kWh<br>     Chargers: 1<br>     Avg Power: 22.00 kW<br>     Coords: (-37.7023, 145.1023)     </div>`)[0];
+                popup_2312ed36a98a3ea08b2e54b161d89a44.setContent(html_f6468be012f43d67d00763d2b6ff27b4);
+            
+        
+
+        circle_marker_f257ba0420423d60cba411e0677fc09e.bindPopup(popup_2312ed36a98a3ea08b2e54b161d89a44)
+        ;
+
+        
+    
+    
+            circle_marker_f257ba0420423d60cba411e0677fc09e.bindTooltip(
+                `<div>
+                     Site 14: 276,776 kWh
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_68018e49db45cb215025051582b9cccc = L.circleMarker(
+                [-37.821678049, 145.124083208],
+                {"bubblingMouseEvents": true, "color": "darkred", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "darkred", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 16.305606290420947, "stroke": true, "weight": 2}
+            ).addTo(map_84b44f0dfa6eac63f2da947d3009f1e5);
+        
+    
+        var popup_ddd2948d6fbbc39db61084ef795ee7ff = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_b912c9b36efed304fdaa1b99b902414f = $(`<div id="html_b912c9b36efed304fdaa1b99b902414f" style="width: 100.0%; height: 100.0%;">     <b>Site 38</b><br>     Total Volume: 283,996 kWh<br>     Chargers: 1<br>     Avg Power: 7.00 kW<br>     Coords: (-37.8217, 145.1241)     </div>`)[0];
+                popup_ddd2948d6fbbc39db61084ef795ee7ff.setContent(html_b912c9b36efed304fdaa1b99b902414f);
+            
+        
+
+        circle_marker_68018e49db45cb215025051582b9cccc.bindPopup(popup_ddd2948d6fbbc39db61084ef795ee7ff)
+        ;
+
+        
+    
+    
+            circle_marker_68018e49db45cb215025051582b9cccc.bindTooltip(
+                `<div>
+                     Site 38: 283,996 kWh
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_45d86b5b14f9bbbea86bb7ab93a255bd = L.circleMarker(
+                [-37.8540197685, 145.104433007],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 16.46366291639181, "stroke": true, "weight": 2}
+            ).addTo(map_84b44f0dfa6eac63f2da947d3009f1e5);
+        
+    
+        var popup_66bde795405bbfbbfe7c282be12c747f = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_9a613e52eabb834aa3eee8c9599cfb54 = $(`<div id="html_9a613e52eabb834aa3eee8c9599cfb54" style="width: 100.0%; height: 100.0%;">     <b>Site 48</b><br>     Total Volume: 318,377 kWh<br>     Chargers: 1<br>     Avg Power: 10.50 kW<br>     Coords: (-37.8540, 145.1044)     </div>`)[0];
+                popup_66bde795405bbfbbfe7c282be12c747f.setContent(html_9a613e52eabb834aa3eee8c9599cfb54);
+            
+        
+
+        circle_marker_45d86b5b14f9bbbea86bb7ab93a255bd.bindPopup(popup_66bde795405bbfbbfe7c282be12c747f)
+        ;
+
+        
+    
+    
+            circle_marker_45d86b5b14f9bbbea86bb7ab93a255bd.bindTooltip(
+                `<div>
+                     Site 48: 318,377 kWh
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_ccb9ac918b7ae1971fad185a12a10832 = L.circleMarker(
+                [-37.9121995629, 145.13498137],
+                {"bubblingMouseEvents": true, "color": "beige", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "beige", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 16.547505507026585, "stroke": true, "weight": 2}
+            ).addTo(map_84b44f0dfa6eac63f2da947d3009f1e5);
+        
+    
+        var popup_8340e55ec6720a369a11bab3afe64377 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_3a0c4e07188502ef9647fc1a1fe14deb = $(`<div id="html_3a0c4e07188502ef9647fc1a1fe14deb" style="width: 100.0%; height: 100.0%;">     <b>Site 49</b><br>     Total Volume: 336,614 kWh<br>     Chargers: 1<br>     Avg Power: 22.00 kW<br>     Coords: (-37.9122, 145.1350)     </div>`)[0];
+                popup_8340e55ec6720a369a11bab3afe64377.setContent(html_3a0c4e07188502ef9647fc1a1fe14deb);
+            
+        
+
+        circle_marker_ccb9ac918b7ae1971fad185a12a10832.bindPopup(popup_8340e55ec6720a369a11bab3afe64377)
+        ;
+
+        
+    
+    
+            circle_marker_ccb9ac918b7ae1971fad185a12a10832.bindTooltip(
+                `<div>
+                     Site 49: 336,614 kWh
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_1ebc8a07c468e36209e8cd084e1b2f59 = L.circleMarker(
+                [-37.7024739201, 144.96951826],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 16.559465100896517, "stroke": true, "weight": 2}
+            ).addTo(map_84b44f0dfa6eac63f2da947d3009f1e5);
+        
+    
+        var popup_0b9746a409f7986430bf871121bb7b40 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_9d3827a5617b72ee9e6c1fd548e2f134 = $(`<div id="html_9d3827a5617b72ee9e6c1fd548e2f134" style="width: 100.0%; height: 100.0%;">     <b>Site 53</b><br>     Total Volume: 339,216 kWh<br>     Chargers: 1<br>     Avg Power: 25.00 kW<br>     Coords: (-37.7025, 144.9695)     </div>`)[0];
+                popup_0b9746a409f7986430bf871121bb7b40.setContent(html_9d3827a5617b72ee9e6c1fd548e2f134);
+            
+        
+
+        circle_marker_1ebc8a07c468e36209e8cd084e1b2f59.bindPopup(popup_0b9746a409f7986430bf871121bb7b40)
+        ;
+
+        
+    
+    
+            circle_marker_1ebc8a07c468e36209e8cd084e1b2f59.bindTooltip(
+                `<div>
+                     Site 53: 339,216 kWh
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_fe75323b2ba41d08e032755d2ccc5a89 = L.circleMarker(
+                [-37.8808635251, 145.022761816],
+                {"bubblingMouseEvents": true, "color": "darkgreen", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "darkgreen", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 17.384015248082736, "stroke": true, "weight": 2}
+            ).addTo(map_84b44f0dfa6eac63f2da947d3009f1e5);
+        
+    
+        var popup_70d4133304aa7ee150add05950e5e0cf = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_533088de6c226ca6c8b141c7feb52766 = $(`<div id="html_533088de6c226ca6c8b141c7feb52766" style="width: 100.0%; height: 100.0%;">     <b>Site 59</b><br>     Total Volume: 518,572 kWh<br>     Chargers: 1<br>     Avg Power: 7.00 kW<br>     Coords: (-37.8809, 145.0228)     </div>`)[0];
+                popup_70d4133304aa7ee150add05950e5e0cf.setContent(html_533088de6c226ca6c8b141c7feb52766);
+            
+        
+
+        circle_marker_fe75323b2ba41d08e032755d2ccc5a89.bindPopup(popup_70d4133304aa7ee150add05950e5e0cf)
+        ;
+
+        
+    
+    
+            circle_marker_fe75323b2ba41d08e032755d2ccc5a89.bindTooltip(
+                `<div>
+                     Site 59: 518,572 kWh
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_51b680faf49aff0df2bf294f41eaa7c0 = L.circleMarker(
+                [-37.7591293, 145.0685473],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 18.087907187780612, "stroke": true, "weight": 2}
+            ).addTo(map_84b44f0dfa6eac63f2da947d3009f1e5);
+        
+    
+        var popup_a1d5e7bec1007e895e71bf939bee7645 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_999d473f5513de9ff442d874d4a57168 = $(`<div id="html_999d473f5513de9ff442d874d4a57168" style="width: 100.0%; height: 100.0%;">     <b>Site 24</b><br>     Total Volume: 671,684 kWh<br>     Chargers: 1<br>     Avg Power: 22.00 kW<br>     Coords: (-37.7591, 145.0685)     </div>`)[0];
+                popup_a1d5e7bec1007e895e71bf939bee7645.setContent(html_999d473f5513de9ff442d874d4a57168);
+            
+        
+
+        circle_marker_51b680faf49aff0df2bf294f41eaa7c0.bindPopup(popup_a1d5e7bec1007e895e71bf939bee7645)
+        ;
+
+        
+    
+    
+            circle_marker_51b680faf49aff0df2bf294f41eaa7c0.bindTooltip(
+                `<div>
+                     Site 24: 671,684 kWh
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_45cc3226db880cd62ff60cbb5c114907 = L.circleMarker(
+                [-37.8654587772, 144.769309537],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "darkblue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 18.089535231157527, "stroke": true, "weight": 2}
+            ).addTo(map_84b44f0dfa6eac63f2da947d3009f1e5);
+        
+    
+        var popup_6adecfe27704d3efad00410e708fb4d6 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_c8c5590760ef78c25a3651b201504ea5 = $(`<div id="html_c8c5590760ef78c25a3651b201504ea5" style="width: 100.0%; height: 100.0%;">     <b>Site 56</b><br>     Total Volume: 672,038 kWh<br>     Chargers: 1<br>     Avg Power: 22.00 kW<br>     Coords: (-37.8655, 144.7693)     </div>`)[0];
+                popup_6adecfe27704d3efad00410e708fb4d6.setContent(html_c8c5590760ef78c25a3651b201504ea5);
+            
+        
+
+        circle_marker_45cc3226db880cd62ff60cbb5c114907.bindPopup(popup_6adecfe27704d3efad00410e708fb4d6)
+        ;
+
+        
+    
+    
+            circle_marker_45cc3226db880cd62ff60cbb5c114907.bindTooltip(
+                `<div>
+                     Site 56: 672,038 kWh
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_3709b5bafa38b84cf98aeba20b1966dd = L.circleMarker(
+                [-37.813007983075, 145.01071494425],
+                {"bubblingMouseEvents": true, "color": "purple", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "purple", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 19.038237753316494, "stroke": true, "weight": 2}
+            ).addTo(map_84b44f0dfa6eac63f2da947d3009f1e5);
+        
+    
+        var popup_2558476610076d0bcf10f2beca05bb30 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_432a2818b5b3a1b79ff8808fbfeaab8a = $(`<div id="html_432a2818b5b3a1b79ff8808fbfeaab8a" style="width: 100.0%; height: 100.0%;">     <b>Site 29</b><br>     Total Volume: 878,400 kWh<br>     Chargers: 1<br>     Avg Power: 22.05 kW<br>     Coords: (-37.8130, 145.0107)     </div>`)[0];
+                popup_2558476610076d0bcf10f2beca05bb30.setContent(html_432a2818b5b3a1b79ff8808fbfeaab8a);
+            
+        
+
+        circle_marker_3709b5bafa38b84cf98aeba20b1966dd.bindPopup(popup_2558476610076d0bcf10f2beca05bb30)
+        ;
+
+        
+    
+    
+            circle_marker_3709b5bafa38b84cf98aeba20b1966dd.bindTooltip(
+                `<div>
+                     Site 29: 878,400 kWh
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_83e4d5d2c7e054e272b5b03b148f9640 = L.circleMarker(
+                [-37.875897, 145.164989],
+                {"bubblingMouseEvents": true, "color": "darkpurple", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "darkpurple", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 35.0, "stroke": true, "weight": 2}
+            ).addTo(map_84b44f0dfa6eac63f2da947d3009f1e5);
+        
+    
+        var popup_eb83ac84bba2c26ceff88f42d491881b = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_c3b228fb932a10bfa83276eb5c055ef5 = $(`<div id="html_c3b228fb932a10bfa83276eb5c055ef5" style="width: 100.0%; height: 100.0%;">     <b>Site 28</b><br>     Total Volume: 4,350,412 kWh<br>     Chargers: 1<br>     Avg Power: 7.00 kW<br>     Coords: (-37.8759, 145.1650)     </div>`)[0];
+                popup_eb83ac84bba2c26ceff88f42d491881b.setContent(html_c3b228fb932a10bfa83276eb5c055ef5);
+            
+        
+
+        circle_marker_83e4d5d2c7e054e272b5b03b148f9640.bindPopup(popup_eb83ac84bba2c26ceff88f42d491881b)
+        ;
+
+        
+    
+    
+            circle_marker_83e4d5d2c7e054e272b5b03b148f9640.bindTooltip(
+                `<div>
+                     Site 28: 4,350,412 kWh
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            tile_layer_d918c171f26ae144bbbcee4cde40a11f.addTo(map_84b44f0dfa6eac63f2da947d3009f1e5);
+        
+</script>
+</html>
