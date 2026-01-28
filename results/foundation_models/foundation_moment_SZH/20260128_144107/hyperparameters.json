@@ -1,0 +1,20 @@
+{
+    "city": "SZH",
+    "model_name": "moment",
+    "model_size": "small",
+    "feature": "volume",
+    "auxiliary": "all",
+    "context_length": 168,
+    "forecast_horizon": 24,
+    "use_segments": false,
+    "batch_size": 16,
+    "epochs": 30,
+    "learning_rate_head": 0.001,
+    "learning_rate_encoder": 0.0001,
+    "weight_decay": 1e-05,
+    "freeze_encoder": true,
+    "unfreeze_at_epoch": 10,
+    "unfreeze_layers": 2,
+    "device": "cpu",
+    "seed": 42
+}
